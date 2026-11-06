@@ -1,0 +1,8 @@
+{
+  "id": "step5preview",
+  "status": "completed",
+  "progress": 100,
+  "phase": "已完成",
+  "note": "自选策略：雪球收割；脚本 scripts/agent-step5preview.js 与设计说明 subagent-progress/step5preview.md 已落盘",
+  "updatedAt": "2026-11-05T12:59:25.581Z"
+}

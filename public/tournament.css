@@ -1,0 +1,64 @@
+.tournament-dialog{width:min(1220px,95vw);max-height:90vh;padding:0 22px 18px;background:#0b1522;border:1px solid var(--line2);border-radius:10px;color:var(--text);box-shadow:0 28px 90px #000b;overflow:auto}
+.tournament-dialog::backdrop{background:#03070cd9}
+.tournament-dialog .dialog-header{position:sticky;top:0;z-index:2;background:#0b1522;padding:16px 0 12px}
+.tourney-config{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;padding:12px 14px;border:1px solid var(--line);border-radius:7px;background:#0e1a29;margin-bottom:12px}
+.tourney-config label{display:flex;flex-direction:column;gap:5px;font-size:10px;color:var(--muted)}
+.tourney-config input[type=text],.tourney-config input:not([type]),.tourney-config select{min-width:118px;padding:7px 9px;font-size:11px}
+.tourney-config #tourneySeed{min-width:190px}
+.tourney-sets{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted);padding-bottom:7px}
+.tourney-sets label{flex-direction:row;align-items:center;gap:4px;color:var(--text);font-size:10px}
+.tourney-sets input{accent-color:var(--cyan)}
+#tourneyStart{padding:8px 15px;font-size:11px}
+#tourneyStartHint{font-size:10px;padding-bottom:8px}
+.tourney-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin-bottom:12px}
+.tourney-summary .tile{border:1px solid var(--line);border-radius:6px;background:#101d2d;padding:9px 11px}
+.tourney-summary .tile span{display:block;font-size:9px;color:var(--muted);letter-spacing:.08em}
+.tourney-summary .tile b{display:block;margin-top:4px;font-size:14px;color:var(--text)}
+.tourney-summary .tile small{display:block;margin-top:2px;font-size:9px;color:var(--muted)}
+.tourney-progress{border:1px solid var(--line);border-radius:6px;background:#101d2d;padding:10px 12px;margin-bottom:12px;font-size:11px}
+.tourney-progress .progress-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+.tourney-progress .bar{height:7px;border-radius:4px;background:#1b2b3e;overflow:hidden}
+.tourney-progress .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .4s}
+.tourney-progress .now{color:var(--muted);margin-top:8px;line-height:1.6}
+.tourney-progress .now b{color:var(--cyan)}
+.tourney-champion{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;border:1px solid #6b5a2f;border-radius:7px;background:linear-gradient(100deg,#2a2415,#111d2c 65%);padding:12px 16px;margin-bottom:12px}
+.tourney-champion .crown{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:800}
+.tourney-champion .who{font-size:20px;font-weight:800;color:var(--gold)}
+.tourney-champion .stat{font-size:11px;color:#c8d4e2}
+.tourney-champion .stat b{color:var(--text)}
+.tourney-champion script,.tourney-champion .script{font-size:10px;color:var(--muted);font-family:"Cascadia Code",Consolas,monospace}
+.tourney-tabs{display:flex;gap:6px;margin-bottom:10px}
+.tourney-tabs button{font-size:11px;padding:7px 14px}
+.tourney-tabs button.active{background:#1d3a4c;border-color:var(--cyan);color:var(--cyan);font-weight:700}
+.tourney-body{max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#0d1826;padding:4px 0}
+.tourney-body table{width:100%;border-collapse:collapse;font-size:11px}
+.tourney-body th{position:sticky;top:0;background:#142234;color:var(--muted);font-size:9px;letter-spacing:.08em;text-align:left;padding:8px 10px;font-weight:700;white-space:nowrap}
+.tourney-body td{padding:7px 10px;border-top:1px solid #1d2c3f;white-space:nowrap;color:#cbd6e3}
+.tourney-body tr.champion td{background:#2b2717;color:var(--gold);font-weight:700}
+.tourney-body tr:hover td{background:#182a3d}
+.tourney-body .rank{font-family:"Cascadia Code",Consolas,monospace;color:var(--cyan)}
+.tourney-body .model{color:var(--text);font-weight:650}
+.tourney-body .rate{font-family:"Cascadia Code",Consolas,monospace}
+.tourney-body .pos{color:var(--green)}
+.tourney-body .neg{color:var(--red)}
+.season-block{border-top:1px solid var(--line2);padding:10px 12px}
+.season-block h4{margin:0 0 8px;font-size:12px;color:var(--cyan)}
+.season-block .bo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:4px 18px;font-size:10px}
+.season-block .bo-grid div{font-family:"Cascadia Code",Consolas,monospace;color:#b8c6d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.season-block .bo-grid b{color:var(--text)}
+.season-block .bo-grid em{font-style:normal;color:var(--gold)}
+.round-title{margin:8px 0 4px;font-size:10px;color:var(--muted)}
+.tourney-empty{padding:22px;text-align:center;color:var(--muted);font-size:11px}
+
+/* 2V2 组队赛：6 支队伍构成卡 */
+.team-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:9px;margin-bottom:12px}
+.team-card{border:1px solid var(--line);border-radius:7px;background:#101d2d;padding:10px 12px}
+.team-card .team-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.team-card .team-name{font-size:12px;font-weight:750;color:var(--text)}
+.team-card .team-kind{font-size:9px;padding:2px 7px;border-radius:9px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.team-card .team-kind.mixed{border-color:#8b6250;color:#e8b59c}
+.team-card .team-vendor{font-size:9px;color:var(--muted);margin-bottom:6px}
+.team-card .member{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#c8d4e2;padding:3px 0;border-top:1px solid var(--line2)}
+.team-card .member small{color:var(--muted);font-size:9px;text-align:right;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-card.champion{border-color:#6b5a2f;background:linear-gradient(100deg,#2a2415,#111d2c 70%)}
+.team-caption{font-size:10px;color:var(--muted);margin:-4px 0 10px}

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>星域奇航 · 战术模拟器</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/tournament.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div id="offlineBanner" class="offline-banner hidden"><b>本地服务未连接</b><span id="offlineMessage">无法连接 127.0.0.1:4397</span><small>双击项目根目录的 <code>start-server.bat</code> 启动服务；恢复后本页会自动重连</small></div>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div><h1>STAR REALMS</h1><p>星域奇航 / 战术模拟器</p></div>
+      </div>
+      <div class="match-strip">
+        <span class="eyebrow">MATCH TELEMETRY</span>
+        <strong id="matchTitle">标准双人</strong>
+        <span id="turnLabel" class="mono">TURN 001</span>
+        <span id="seedLabel" class="mono muted">SEED —</span>
+      </div>
+      <div class="top-actions">
+        <span id="liveBadge" class="status-badge"><i></i>已暂停</span>
+        <button id="subagentsBtn" class="ghost">AI 工厂 <span id="subagentBadge" class="count-badge">0/12</span></button>
+        <button id="tournamentBtn" class="ghost">瑞士轮 <span id="tourneyBadge" class="count-badge">—</span></button>
+        <button id="teamTournamentBtn" class="ghost">2V2 组队赛 <span id="teamTourneyBadge" class="count-badge">—</span></button>
+        <button id="newMatchBtn" class="primary">新建对局</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar left-panel">
+        <section>
+          <div class="section-heading"><span>对局控制</span><small>CONTROL</small></div>
+          <div class="control-grid">
+            <button id="pauseBtn">暂停</button><button id="resumeBtn" class="accent">继续</button>
+            <button id="stepBtn">单步执行</button><a class="button" href="/api/replay" download>导出回放</a>
+          </div>
+          <label class="field-label" for="speedSelect">行动间隔</label>
+          <select id="speedSelect"><option value="0">极速</option><option value="100">快速 · 100ms</option><option value="350" selected>标准 · 350ms</option><option value="800">从容 · 800ms</option><option value="1500">慢速 · 1.5s</option></select>
+          <label class="field-label" for="perspectiveSelect">观察视角</label>
+          <select id="perspectiveSelect"><option value="spectator">全局观战</option></select>
+          <div id="waitingBox" class="waiting-box hidden">等待人类座位决策</div>
+        </section>
+        <section class="grow">
+          <div class="section-heading"><span>参战席位</span><small>SEATS</small></div>
+          <div id="seatList" class="seat-list"></div>
+        </section>
+        <section class="rules-note">
+          <span class="eyebrow">RULESET / CORE 1.0</span>
+          <p>基础盒 80 张交易牌。数值由服务端规则引擎结算，脚本无法直接修改。</p>
+        </section>
+      </aside>
+
+      <main class="battlefield">
+        <div id="resultBanner" class="result-banner hidden"></div>
+        <section class="opponent-zone">
+          <div class="zone-label"><span>敌方阵线</span><small>OPPOSITION</small></div>
+          <div id="opponents" class="opponents"></div>
+        </section>
+
+        <section class="trade-zone">
+          <div class="zone-label"><span>中央交易区</span><small>TRADE ROW</small></div>
+          <div id="eventBanner" class="event-banner hidden"></div>
+          <div class="trade-layout">
+            <div class="deck-stack"><div class="deck-back"><div class="deck-orbit"></div><strong>交易牌库</strong><span id="deckCount" class="mono">80</span></div><small>TRADE DECK</small></div>
+            <div id="tradeRow" class="card-row trade-row"></div>
+            <div id="explorerSlot" class="explorer-slot"></div>
+          </div>
+        </section>
+
+        <section class="player-zone">
+          <div class="zone-label"><span id="activeZoneLabel">当前阵线</span><small>ACTIVE BOARD</small></div>
+          <div id="activeBoard" class="active-board"></div>
+          <div class="hand-heading"><span>手牌 / IN PLAY</span><span id="resourceBar" class="resource-bar"></span></div>
+          <div id="handRow" class="card-row hand-row"></div>
+        </section>
+      </main>
+
+      <aside class="sidebar right-panel">
+        <div class="section-heading"><span>行动记录</span><small>COMBAT LOG</small></div>
+        <div class="log-tools"><span id="actionCount" class="mono">0 ACTIONS</span><button id="logLatestBtn" class="text-button">回到最新</button></div>
+        <div id="eventLog" class="event-log"></div>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="setupDialog" class="setup-dialog">
+    <form id="setupForm">
+      <div class="dialog-header"><div><span class="eyebrow">NEW SIMULATION</span><h2>配置一场星海对局</h2></div><button type="button" id="closeSetup" class="icon-button" aria-label="关闭">×</button></div>
+      <div class="setup-section"><label>游戏模式</label><div id="modeChoices" class="mode-choices"></div></div>
+      <div class="setup-section"><label>扩展组合（任意勾选）</label><div id="expansionChoices" class="expansion-choices"></div><small>交易牌堆可单独或混洗；事件牌会洗入所选交易牌堆，翻出后立即结算。</small></div>
+      <div class="setup-columns">
+        <div><div class="setup-section"><label for="seedInput">随机种子</label><input id="seedInput" value="welcome-01" autocomplete="off"><small>相同种子与动作序列可完整复现</small></div>
+          <div class="setup-section" id="playerCountWrap"><label for="playerCount">玩家人数</label><select id="playerCount"><option value="3">3 人</option><option value="4">4 人</option></select></div>
+          <div class="setup-section inline-setup"><label><input id="autoRunInput" type="checkbox" checked> 创建后自动运行</label><label>间隔 <select id="setupSpeed"><option value="100">快速</option><option value="350" selected>标准</option><option value="800">慢速</option></select></label></div>
+        </div>
+        <div class="setup-section"><label>座位与 AI 脚本</label><div id="seatEditors" class="seat-editors"></div><small>每个座位可独立选择内置 AI、人类或 scripts/ 中的用户脚本。</small></div>
+      </div>
+      <div class="dialog-footer"><span>本地运行 · 无需依赖 · 无网络对战</span><button class="primary large" type="submit">启动模拟</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="actionDialog" class="action-dialog"><div class="dialog-header"><div><span class="eyebrow">LEGAL ACTIONS</span><h2>选择行动</h2></div><button id="closeActions" class="icon-button" type="button">×</button></div><div id="actionChoices" class="action-choices"></div></dialog>
+
+  <dialog id="subagentsDialog" class="subagents-dialog">
+    <div class="dialog-header"><div><span class="eyebrow">AI SCRIPT FACTORY · LIVE</span><h2>12 模型脚本协作看板</h2></div><button id="closeSubagents" class="icon-button" type="button">×</button></div>
+    <div class="factory-summary"><span id="factorySummary">正在读取进度…</span><span id="factoryUpdated" class="mono muted"></span></div>
+    <div class="factory-layout"><div id="subagentsList" class="subagents-list"></div><div class="design-panel"><span class="eyebrow">公开设计说明</span><h3 id="designTitle">选择一个模型</h3><pre id="designNote">这里显示各模型自己写下的核心思路、动作优先级、模式适配与取舍；不展示内部推理。</pre></div></div>
+    <div class="dialog-footer"><span>阶段摘要由各 subagent 写入独立进度文件，服务端 SSE 实时推送</span><button id="refreshSubagents" type="button">立即刷新</button></div>
+  </dialog>
+  <dialog id="tournamentDialog" class="tournament-dialog">
+    <div class="dialog-header"><div><span class="eyebrow">SWISS TOURNAMENT · BO10</span><h2>12 模型瑞士轮排行榜</h2></div><button id="closeTournament" class="icon-button" type="button">×</button></div>
+    <div class="tourney-config">
+      <label>主种子<input id="tourneySeed" value="swiss-2026-11-05" autocomplete="off"></label>
+      <label>届数<select id="tourneySeasons"><option>1</option><option>3</option><option selected>5</option><option>12</option></select></label>
+      <label>轮数<select id="tourneyRounds"><option>3</option><option>4</option><option selected>5</option><option>7</option></select></label>
+      <label>每边局数<select id="tourneyPerSide"><option>3</option><option selected>5</option><option>10</option></select></label>
+      <div id="tourneySets" class="tourney-sets"><span>牌包</span><label><input type="checkbox" value="core" checked>基础盒</label><label><input type="checkbox" value="colonyWars">殖民战争</label><label><input type="checkbox" value="events">事件</label></div>
+      <button id="tourneyStart" type="button" class="primary">启动新赛</button>
+      <span id="tourneyStartHint" class="muted"></span>
+    </div>
+    <div id="tourneySummary" class="tourney-summary"></div>
+    <div id="tourneyProgress" class="tourney-progress"></div>
+    <div id="tourneyChampion" class="tourney-champion"></div>
+    <div class="tourney-tabs"><button id="tourneyTabBoard" class="active" type="button">聚合总榜</button><button id="tourneyTabSeasons" type="button">各届榜单</button><button id="tourneyTabRounds" type="button">逐轮 BO10</button></div>
+    <div id="tourneyBody" class="tourney-body"></div>
+    <div class="dialog-footer"><span>每场 BO10 = 先后手各 5 局；每局独立随机种子，同分随机排序，配对避免重赛</span><a class="button" href="/api/tournament/full" download>下载完整报告</a><button id="tourneyRefresh" type="button">立即刷新</button></div>
+  </dialog>
+  <dialog id="teamTournamentDialog" class="tournament-dialog">
+    <div class="dialog-header"><div><span class="eyebrow">TEAM SWISS · 2V2 · BO8</span><h2>6 队组队瑞士轮排行榜</h2></div><button id="closeTeamTournament" class="icon-button" type="button">×</button></div>
+    <div class="tourney-config">
+      <label>主种子<input id="teamTourneySeed" value="swiss-2026-11-05" autocomplete="off"></label>
+      <label>届数<select id="teamTourneySeasons"><option>1</option><option>3</option><option>5</option><option selected>12</option></select></label>
+      <label>轮数<select id="teamTourneyRounds"><option>3</option><option>4</option><option selected>5</option><option>7</option></select></label>
+      <label>排列重复<select id="teamTourneyRepeats"><option value="1" selected>1 · BO8</option><option value="2">2 · BO16</option><option value="3">3 · BO24</option></select></label>
+      <div id="teamTourneySets" class="tourney-sets"><span>牌包</span><label><input type="checkbox" value="core" checked>基础盒</label><label><input type="checkbox" value="colonyWars">殖民战争</label><label><input type="checkbox" value="events">事件</label></div>
+      <button id="teamTourneyStart" type="button" class="primary">启动新赛</button>
+      <span id="teamTourneyStartHint" class="muted"></span>
+    </div>
+    <div id="teamTourneySummary" class="tourney-summary"></div>
+    <div id="teamTourneyTeams" class="team-cards"></div>
+    <div id="teamTourneyProgress" class="tourney-progress"></div>
+    <div id="teamTourneyChampion" class="tourney-champion"></div>
+    <div class="tourney-tabs"><button id="teamTabBoard" class="active" type="button">聚合总榜</button><button id="teamTabSeasons" type="button">各届榜单</button><button id="teamTabRounds" type="button">逐轮 BO8</button><button id="teamTabMembers" type="button">队员分项</button></div>
+    <div id="teamTourneyBody" class="tourney-body"></div>
+    <div class="dialog-footer"><span>5 支同厂联队 + 1 支混编联队 · 每场 BO8 覆盖 8 种座位排列，先后手与队内位置完全配平</span><a class="button" href="/api/team-tournament/full" download>下载完整报告</a><button id="teamTourneyRefresh" type="button">立即刷新</button></div>
+  </dialog>
+  <div id="toast" class="toast hidden"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

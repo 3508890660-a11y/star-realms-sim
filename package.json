@@ -1,0 +1,18 @@
+{
+  "name": "star-realms-sim",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic Star Realms engine, scripted AI runner and spectator UI",
+  "scripts": {
+    "start": "node src/server/server.js",
+    "play": "node src/cli.js play",
+    "batch": "node src/cli.js batch",
+    "swiss": "node src/tourney-cli.js",
+    "swiss:team": "node src/team-tourney-cli.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
