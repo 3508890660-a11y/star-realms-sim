@@ -498,3 +498,42 @@ node video/build-video.mjs
 
 > 注意：`reply/star-realms-replay1.json` 是旧版引擎产物，用当前引擎重放会出现 254 个非法动作，因此**未**用于本片的战况解说；解说用的是报告种子复现的真实赛程对局与 `star-realms-replay2.json`。
 
+## 14. 2V2 实验室（同模型复制队 / 随机组队）
+
+纯 CLI 实验链路，**不经过 Web 服务、不改动观战台 UI**。核心在 `src/engine/team-lab.js`，执行器 `src/team-lab-cli.js`，汇总 `src/team-lab-summary.js`。
+
+| 实验 | 队伍构成 | 赛制 | 要回答的问题 |
+|---|---|---|---|
+| **A · clone** | 12 支队伍，每队是**同一份脚本的两个副本** | 参考 1v1：12 个参赛单位 × 12 届 × 5 轮瑞士轮，同分优先 + 回溯零重赛，按局胜率聚合 | 队友是自己的镜像，队伍成绩近似等于「单个模型脚本的 2V2 能力」 |
+| **B · random** | 每届把 12 个模型随机配成 6 队，12 届队伍构成都不同 | 每届 6 队 × 5 轮组队瑞士轮（带剩余轮次可行性前瞻，零重赛） | 队伍胜负共享，用统计口径拆出「个人发挥最强」 |
+
+两套实验各跑**核心牌包**（`core`）与**全扩**（`core + colonyWars + events`），共四场；每场 BO8 覆盖 8 种座位排列，主种子 `lab-2v2-2026-11-06`，每场报告在跑完当刻写入 `reply/`。
+
+**个人发挥口径**（实验 B 主口径）：团队 Bradley–Terry 逻辑模型
+`logit P(前位队胜) = β[座位0] + β[座位2] − β[座位1] − β[座位3] + γ`，
+IRLS 拟合 12 个 β（中心化为 0）与前位截距 γ，控制队友与对手强度；辅助口径为「在场队伍胜率（Wilson CI）」与「所在队伍夺冠次数」。2v2 胜负共享，β 是统计估计而非直接测量，同一场 BO8 内对局不独立，SE/z 只作近似参考。
+
+产物（均在 `reply/`）：
+
+| 文件 | 内容 |
+|---|---|
+| `star-realms-2v2-clone-core.json/.md` | A · 核心，2880 局 |
+| `star-realms-2v2-clone-all.json/.md` | A · 全扩，2880 局 |
+| `star-realms-2v2-random-core.json/.md` | B · 核心，1440 局 |
+| `star-realms-2v2-random-all.json/.md` | B · 全扩，1440 局 |
+| `star-realms-2v2-lab-summary.md` | 四场对照与交叉结论 |
+
+四场均零重赛、零异常重试、零前瞻回退，座位配平通过；前位队胜率 54.31%～55.28%（规则固有优势，已由 BO8 配平并从 β 中扣除）。**四场榜首一致：`deepseek v4.1flash`**（A 核心 88.96%、A 全扩 79.79%；B 核心 β=1.3108、B 全扩 β=0.9083）。全扩下「在场队伍胜率第一」与「β 第一」不是同一模型，正说明队伍胜负会被队友带高。
+
+复现：
+
+```bash
+node src/team-lab-cli.js --experiment clone  --sets core --seed lab-2v2-2026-11-06 --seasons 12 --rounds 5 --out reply/star-realms-2v2-clone-core
+node src/team-lab-cli.js --experiment clone  --sets all  --seed lab-2v2-2026-11-06 --seasons 12 --rounds 5 --out reply/star-realms-2v2-clone-all
+node src/team-lab-cli.js --experiment random --sets core --seed lab-2v2-2026-11-06 --seasons 12 --rounds 5 --out reply/star-realms-2v2-random-core
+node src/team-lab-cli.js --experiment random --sets all  --seed lab-2v2-2026-11-06 --seasons 12 --rounds 5 --out reply/star-realms-2v2-random-all
+node src/team-lab-summary.js
+```
+
+`src/team-lab-recompute.js` 可在口径修正后从逐局记录重算派生统计并刷新报告，**不重跑对局、不改赛程与胜负**。`test/team-lab.test.js` 覆盖复制队构建、随机组队不重不漏、β 拟合可辨识性、座位配平与四场报告的账目守恒。
+

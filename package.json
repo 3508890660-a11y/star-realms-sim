@@ -10,6 +10,9 @@
     "batch": "node src/cli.js batch",
     "swiss": "node src/tourney-cli.js",
     "swiss:team": "node src/team-tourney-cli.js",
+    "lab": "node src/team-lab-cli.js",
+    "lab:summary": "node src/team-lab-summary.js",
+    "lab:recompute": "node src/team-lab-recompute.js",
     "test": "node --test test/*.test.js"
   },
   "engines": {
