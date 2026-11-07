@@ -19,6 +19,13 @@ const TOURNEY_CLI = path.join(ROOT, 'src', 'tourney-cli.js');
 const TEAM_CLI = path.join(ROOT, 'src', 'team-tourney-cli.js');
 const TEAM_PROGRESS_FILE = path.join(TOURNEY_DIR, 'team-progress.json');
 const TEAM_LATEST_FILE = path.join(TOURNEY_DIR, 'team-latest.json');
+const LAB_DIR = path.join(ROOT, 'reply');
+const LAB_RUNS = Object.freeze([
+  { key: 'clone-core', file: 'star-realms-2v2-clone-core.json', experiment: 'clone', sets: 'core' },
+  { key: 'clone-all', file: 'star-realms-2v2-clone-all.json', experiment: 'clone', sets: 'all' },
+  { key: 'random-core', file: 'star-realms-2v2-random-core.json', experiment: 'random', sets: 'core' },
+  { key: 'random-all', file: 'star-realms-2v2-random-all.json', experiment: 'random', sets: 'all' }
+]);
 const subagentClients = new Set();
 let activeTournament = null;
 let activeTeamTournament = null;
@@ -125,6 +132,74 @@ function readTeamTournament() {
     teams: result?.teams || readTeamCatalog(),
     updatedAt: new Date().toISOString()
   };
+}
+
+/**
+ * 2V2 实验室看板：只读 reply/ 下四份已落盘报告。
+ * 逐局明细（3MB 级）不进看板，只保留榜单与账目；mtime 签名变化时才重新解析。
+ */
+let labCache = { signature: '', result: null };
+
+function briefLabRun(full, entry) {
+  return {
+    key: entry.key, experiment: entry.experiment, sets: entry.sets,
+    file: full.file, generatedAt: full.generatedAt,
+    config: full.config, audit: full.audit, stats: full.stats,
+    teams: full.teams || null,
+    aggregate: full.aggregate || null,
+    champion: full.champion || null,
+    members: full.members || [],
+    contribution: full.contribution || null,
+    // 看板只展示「各届冠军 + 随机组队名单」；逐轮逐局明细留在可下载的完整报告里。
+    seasons: (full.seasons || []).map(season => ({
+      index: season.index, seed: season.seed, champion: season.champion,
+      audit: season.audit,
+      teamRoster: season.teamRoster || null,
+      standings: (season.standings || []).map(row => ({
+        rank: row.rank, id: row.id, mp: row.mp, gameWins: row.gameWins,
+        games: row.games, gameRate: row.gameRate,
+        buchholz: row.buchholz, sb: row.sb
+      }))
+    }))
+  };
+}
+
+function buildLabSummary(runs) {
+  const winners = runs.filter(run => !run.missing).map(run => {
+    const id = run.experiment === 'clone'
+      ? run.teams?.find(team => team.id === run.aggregate?.[0]?.id)?.players?.[0]?.model
+      : run.contribution?.rows?.[0]?.id;
+    return { key: run.key, experiment: run.experiment, sets: run.sets, id: id || null };
+  });
+  const ids = [...new Set(winners.map(w => w.id).filter(Boolean))];
+  return { winners, consistent: winners.length > 0 && ids.length === 1, championId: ids.length === 1 ? ids[0] : null };
+}
+
+function readLab() {
+  const entries = LAB_RUNS.map(run => {
+    const file = path.join(LAB_DIR, run.file);
+    let mtime = 0;
+    try { mtime = fs.statSync(file).mtimeMs; } catch { return { ...run, file, mtime: 0, missing: true }; }
+    return { ...run, file, mtime, missing: false };
+  });
+  const signature = entries.map(entry => `${entry.key}:${entry.mtime}`).join('|');
+  if (labCache.signature === signature) return labCache.result;
+
+  const catalog = JSON.parse(fs.readFileSync(SUBAGENT_CATALOG, 'utf8')).agents;
+  const models = Object.fromEntries(catalog.map(agent => [agent.id, {
+    model: agent.model, strategy: agent.strategy, file: agent.file
+  }]));
+  const runs = entries.map(entry => entry.missing
+    ? { key: entry.key, experiment: entry.experiment, sets: entry.sets, missing: true }
+    : briefLabRun(readJsonIfExists(entry.file) || {}, entry));
+  const result = {
+    format: 'star-realms-sim-2v2-lab-board', version: 1,
+    runs, models,
+    summary: buildLabSummary(runs),
+    updatedAt: new Date().toISOString()
+  };
+  labCache = { signature, result };
+  return result;
 }
 
 function clampInt(value, min, max, fallback) {
@@ -385,6 +460,16 @@ const server = http.createServer(async (req, res) => {
         } catch {}
       });
       return json(res, 200, { ok: true, runId, config: { seed, seasons, rounds, perSide, bo, sets } });
+    }
+    // 2V2 实验室：只读看板 + 单场完整报告下载（run 必须命中白名单，不拼接用户输入路径）。
+    if (url.pathname === '/api/lab') return json(res, 200, readLab());
+    if (url.pathname === '/api/lab/full') {
+      const key = String(url.searchParams.get('run') || '');
+      const entry = LAB_RUNS.find(run => run.key === key);
+      if (!entry) return json(res, 400, { error: '未知的实验室赛事' });
+      const body = readJsonIfExists(path.join(LAB_DIR, entry.file));
+      if (!body) return json(res, 404, { error: '该场报告尚未生成' });
+      return json(res, 200, body, { 'Content-Disposition': `attachment; filename="${entry.file}"` });
     }
     if (url.pathname === '/api/team-tournament') return json(res, 200, readTeamTournament());
     if (url.pathname === '/api/team-tournament/full') return json(res, 200, readJsonIfExists(TEAM_LATEST_FILE) || { error: '尚无完整组队赛报告' }, { 'Content-Disposition': 'attachment; filename="star-realms-team-swiss-report.json"' });

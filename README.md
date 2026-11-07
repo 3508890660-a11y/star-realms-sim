@@ -500,7 +500,7 @@ node video/build-video.mjs
 
 ## 14. 2V2 实验室（同模型复制队 / 随机组队）
 
-纯 CLI 实验链路，**不经过 Web 服务、不改动观战台 UI**。核心在 `src/engine/team-lab.js`，执行器 `src/team-lab-cli.js`，汇总 `src/team-lab-summary.js`。
+实验本身是纯 CLI 链路，报告落盘 `reply/`，不经过对局服务；2026-11-07 起观战台新增**只读**「2V2 实验室」标签页展示这些报告（见第 15 节）。核心在 `src/engine/team-lab.js`，执行器 `src/team-lab-cli.js`，汇总 `src/team-lab-summary.js`。
 
 | 实验 | 队伍构成 | 赛制 | 要回答的问题 |
 |---|---|---|---|
@@ -536,4 +536,20 @@ node src/team-lab-summary.js
 ```
 
 `src/team-lab-recompute.js` 可在口径修正后从逐局记录重算派生统计并刷新报告，**不重跑对局、不改赛程与胜负**。`test/team-lab.test.js` 覆盖复制队构建、随机组队不重不漏、β 拟合可辨识性、座位配平与四场报告的账目守恒。
+
+## 15. 观战台 · 2V2 实验室标签页（2026-11-07）
+
+顶部新增「2V2 实验室」按钮，打开只读对话框，展示第 14 节四场报告。**原有对局 / 1v1 瑞士轮 / 2V2 组队赛面板与 1.5s 轮询保持不变。**
+
+| 层 | 实现 |
+|---|---|
+| 服务端 | `/api/lab` 按 4 份报告 mtime 签名缓存，返回榜单、账目、个人统计与各届冠军（剔除逐局明细后约 240 KB）；`/api/lab/full?run=<key>` 用白名单校验后下载完整报告，越界返回 400 |
+| 前端 | `public/index.html` 的 `#labDialog`、`public/app.js` 的 `refreshLab()/renderLab()`、`public/tournament.css` 的 `.lab-*` 样式 |
+| 界面 | 四场概览卡 + 交叉结论条 + 四场切换 + 账目格 + 四个标签（复制队能力榜 / 个人 β 榜、在场统计、各届冠军、口径与复现）+ 完整报告下载 |
+
+实验 B 以 β 为主口径，全扩下「在场队伍胜率第一」与「β 第一」不一致的说明写在「口径与复现」标签里。面板**只读**：不启动对局、不写报告；要重跑实验仍用第 14 节的命令行。
+
+验收：`test/lab-ui.test.js` 4 项（HTML 挂载点、前端绑定、服务端白名单/缓存、API 集成），全量 **75/75 通过**；无头 Edge + CDP 实测截图见 `test-artifacts/lab-ui-a-core.png`、`lab-ui-b-all.png`、`lab-ui-notes.png`。
+
+**项目时间线**：[`TIMELINE.md`](TIMELINE.md) 以本次更新为终点，按 git 提交时间、报告 `generatedAt` 与文件 mtime 回溯全项目，并附证据索引与口径边界。
 

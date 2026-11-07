@@ -62,3 +62,35 @@
 .team-card .member small{color:var(--muted);font-size:9px;text-align:right;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .team-card.champion{border-color:#6b5a2f;background:linear-gradient(100deg,#2a2415,#111d2c 70%)}
 .team-caption{font-size:10px;color:var(--muted);margin:-4px 0 10px}
+
+/* 2V2 实验室：四场只读看板 */
+.lab-dialog{width:min(1280px,96vw)}
+.lab-dialog .dialog-header h2{font-size:17px}
+.lab-run-tabs{flex-wrap:wrap;margin-bottom:10px}
+.lab-run-tabs button{min-width:152px;text-align:left}
+.lab-run-tabs button .sub{display:block;font-size:9px;font-weight:400;color:var(--muted);margin-top:2px}
+.lab-run-tabs button.active .sub{color:#9fdcf0}
+.lab-audit{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-bottom:12px}
+.lab-audit .cell{border:1px solid var(--line);border-radius:6px;background:#101d2d;padding:8px 10px}
+.lab-audit .cell span{display:block;font-size:9px;color:var(--muted);letter-spacing:.06em}
+.lab-audit .cell b{display:block;margin-top:3px;font-size:13px;color:var(--text);font-family:"Cascadia Code",Consolas,monospace}
+.lab-audit .cell small{display:block;margin-top:2px;font-size:9px;color:var(--muted)}
+.lab-audit .cell.ok b{color:var(--green)}
+.lab-audit .cell.warn b{color:var(--gold)}
+.lab-body{max-height:48vh}
+.lab-body .beta{font-family:"Cascadia Code",Consolas,monospace;color:var(--cyan);font-weight:700}
+.lab-body .lead{color:var(--gold);font-weight:700}
+.lab-body .mono,.lab-notes code{font-family:"Cascadia Code",Consolas,monospace}
+.lab-notes{padding:12px 14px;font-size:11px;line-height:1.8;color:#c8d4e2}
+.lab-notes h4{margin:0 0 8px;font-size:12px;color:var(--cyan)}
+.lab-notes p{margin:0 0 9px}
+.lab-notes ul{margin:0 0 12px;padding-left:18px}
+.lab-notes li{margin-bottom:4px}
+.lab-notes pre{white-space:pre-wrap;word-break:break-all;background:#0a1420;border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:#9fdcf0;font-size:10px;line-height:1.7;margin:0 0 10px}
+.lab-notes .source{font-size:10px;color:var(--muted)}
+.lab-empty{padding:22px;text-align:center;color:var(--muted);font-size:11px}
+.lab-season{border-top:1px solid var(--line2);padding:9px 12px}
+.lab-season h4{margin:0 0 6px;font-size:11px;color:var(--cyan)}
+.lab-season .roster{display:flex;flex-wrap:wrap;gap:5px 12px;font-size:10px;color:#b8c6d6}
+.lab-season .roster span{white-space:nowrap}
+.lab-season .roster b{color:var(--text)}
