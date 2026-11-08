@@ -674,11 +674,20 @@ const is3v3Run = run => run?.experiment === 'hydra3' || run?.experiment === 'emp
 function labHeadline(available) {
   if (!available.length) return '<span class="stat">reply/ 下暂无实验室报告，可用 src/team-lab-cli.js 生成。</span>';
   const summary = labData.summary || {};
-  const name = summary.championId ? labModel(summary.championId) : '—';
+  const counts = new Map();
+  for (const winner of summary.winners || []) {
+    if (winner.id) counts.set(winner.id, (counts.get(winner.id) || 0) + 1);
+  }
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+  const consistent = summary.consistent && summary.championId;
+  const name = consistent ? labModel(summary.championId) : (ranked.length ? `${labModel(ranked[0][0])} · ${ranked[0][1]}/${available.length} 场` : '—');
+  const note = consistent
+    ? `<b>${available.length} 场榜首完全一致</b>`
+    : '各场榜首不一致，请对照明细（左为出现次数最多的模型）';
   const total = available.reduce((sum, run) => sum + (run.audit?.playedGames || 0), 0);
   const seed = available[0].config?.masterSeed || '—';
   return `<span class="crown">CROSS-RUN RESULT · ${available.length} 场</span><span class="who">${escapeHtml(name)}</span>` +
-    `<span class="stat">${summary.consistent ? `<b>${available.length} 场榜首完全一致</b>` : '榜首不完全一致，请对照各场明细'}</span>` +
+    `<span class="stat">${note}</span>` +
     `<span class="stat">2V2 复制队口径：局胜率　·　2V2/3V3 个人口径：控制队友与对手后的 β</span>` +
     `<span class="script">主种子 ${escapeHtml(seed)} · 合计 ${total} 局</span>`;
 }
@@ -754,7 +763,7 @@ function labNotesHtml(run) {
     ? `node src/mode-tourney-cli.js --mode ${config.mode} --sets ${config.setsKey} --seasons ${config.seasons} --repeats ${config.repeats} --seed ${config.masterSeed} --out ${config.outBase}`
     : `node src/team-lab-cli.js --experiment ${config.experiment} --sets ${config.setsKey} --seed ${config.masterSeed} --seasons ${config.seasons} --rounds ${config.rounds} --repeats ${config.repeats} --out ${config.outBase}`;
   const design = is3v3
-    ? `每届把 12 个模型随机分成 4 队、每队 3 人，打完整单循环（3 轮 × 2 场，零重赛）。队伍胜负共享，用团队 Bradley–Terry 拟合 12 个 β 与前位截距 γ。${config.mode === 'emperor' ? '大将战每队 1 名大将（60 权威）+ 2 名提督（50 权威），提督只能打对面提督，大将被击败则全队失败。' : '三头龙全队共享 100 权威，队友间可转移贸易/战斗，任一人有前哨则全队受保护。'}`
+    ? `每届把 12 个模型随机分成 4 队、每队 3 人，打完整单循环（3 轮 × 2 场，零重赛）。队伍胜负共享，用团队 Bradley–Terry 拟合 12 个 β 与前位截距 γ。${config.mode === 'emperor' ? '大将战每队 1 名大将（60 权威）+ 2 名提督（50 权威）；提督只能打自己的对位提督，对位阵亡后才可打敌方大将，大将可攻击任何敌方；大将被击败则全队失败。' : '三头龙全队共享 100 权威，队友间可转移贸易/战斗，任一人有前哨则全队受保护。'}`
     : isClone
     ? '12 支队伍，每队由同一份 AI 脚本的两个副本组成；队友是自己的镜像，队伍成绩可近似归因为单个脚本的 2V2 能力。赛制参考 1v1：12 个参赛单位、每届 5 轮瑞士轮、同分优先 + 回溯零重赛，按局胜率聚合。'
     : '每届把 12 个模型随机两两配成 6 队，12 届队伍构成都不同；每届跑 5 轮组队瑞士轮（带剩余轮次可行性前瞻）。队伍胜负共享，因此用团队 Bradley–Terry 逻辑模型拟合 12 个 β 与前位截距 γ，控制队友与对手强度。';
@@ -803,15 +812,22 @@ function renderLab() {
   }
 
   const audit = run.audit || {}, config = run.config || {}, stats = run.stats || {};
+  // 2v2 实验带前瞻回退与座位次数；3v3 是完整单循环，座位等频记在 seatDistinctCounts。
+  const seatAppearances = audit.perModelSeatAppearances
+    ?? (Array.isArray(audit.seatDistinctCounts) && audit.seatDistinctCounts.length === 1 ? audit.seatDistinctCounts[0] : null);
   const cells = [
     ['总局数', audit.playedGames, `计划 ${audit.totalGames}`],
     ['赛制', `${config.seasons} × ${config.rounds}`, `每场 BO${config.bo}`],
     ['牌包', config.setsLabel || (config.sets || []).join('+'), `模式 ${config.mode}`],
     ['前位队胜率', pct(stats.frontSideRate), `${stats.frontSideWins}/${stats.totalGames}`],
     ['座位配平', audit.seatBalanced ? '通过' : '未通过', is3v3Run(run) ? '六座等频' : '四座等频'],
-    ['重赛 / 重试', `${audit.rematches} / ${audit.retries}`, `前瞻回退 ${audit.infeasibleRounds}`],
-    ['每人参与局数', audit.perModelGames, `座位 ${audit.perModelSeatAppearances} 次`]
+    ['重赛 / 重试', `${audit.rematches} / ${audit.retries}`,
+      audit.infeasibleRounds === undefined ? '完整单循环 · 无前瞻回退' : `前瞻回退 ${audit.infeasibleRounds}`],
+    ['每人参与局数', audit.perModelGames, seatAppearances === null ? '按局去重' : `座位 ${seatAppearances} 次`]
   ];
+  if (audit.emperorBalanced !== undefined) {
+    cells.push(['大将角色配平', audit.emperorBalanced ? '通过' : '未通过', '每人 2 次大将']);
+  }
   if (run.experiment === 'random') cells.push(['搭档覆盖', `${audit.partnerPairs}/66`, '跨届不同搭档']);
   cells.push(['耗时', `${(audit.elapsedMs / 1000).toFixed(1)}s`, run.generatedAt ? new Date(run.generatedAt).toLocaleString() : '']);
   $('#labAudit').innerHTML = cells.map(([label, value, note]) => {

@@ -45,9 +45,30 @@ export function isEmperor(state, playerId) {
   return state.mode === 'emperor' && (state.emperors || []).includes(playerId);
 }
 
-/** 大将战的对位：0↔1、2↔3、4↔5。 */
+/** 大将战里某队的两名提督座位（按座位升序，保证配对稳定）。 */
+export function admiralSeats(state, team) {
+  return state.players
+    .filter(player => player.team === team && !isEmperor(state, player.id))
+    .map(player => player.id)
+    .sort((a, b) => a - b);
+}
+
+/**
+ * 提督对位：两队提督按各自队内座位序一一配对，互为对位。
+ * 不能用「座位 +1」：座位是两队交替的，奇偶座位各有一名大将会让
+ * 某名提督对上敌方大将，从而绕过「先解决对面提督」的限制。
+ * 大将在规则里没有提督对位，返回 null。
+ */
 export function oppositeSeat(state, playerId) {
-  return (playerId + 1) % Math.max(2, state.players.length);
+  const count = Math.max(2, state.players.length);
+  if (state.mode !== 'emperor') return (playerId + 1) % count;
+  if (isEmperor(state, playerId)) return null;
+  const team = state.players[playerId].team;
+  const own = admiralSeats(state, team);
+  const rival = admiralSeats(state, 1 - team);
+  const index = own.indexOf(playerId);
+  if (index < 0 || index >= rival.length) return null;
+  return rival[index];
 }
 
 export function nextAlive(state, from, direction = 1) {
@@ -63,9 +84,11 @@ export function canAttackPlayer(state, attacker, target) {
   if (isTeamMode(state.mode)) return teamOf(state, attacker) !== teamOf(state, target);
   if (state.mode === 'emperor') {
     if (teamOf(state, attacker) === teamOf(state, target)) return false;
+    // 大将：可攻击/指定任何敌方玩家与基地。
     if (isEmperor(state, attacker)) return true;
-    // 提督：先打对面提督；对面提督阵亡后，才允许打敌方大将。
+    // 提督：只能打对面提督；对面提督阵亡后，才解锁敌方大将。
     const opposite = oppositeSeat(state, attacker);
+    if (opposite === null) return false;
     if (target === opposite) return true;
     return state.players[opposite].eliminated && isEmperor(state, target);
   }
@@ -82,6 +105,7 @@ export function canTargetBase(state, attacker, owner) {
     if (teamOf(state, attacker) === teamOf(state, owner)) return false;
     if (isEmperor(state, attacker)) return true;
     const opposite = oppositeSeat(state, attacker);
+    if (opposite === null) return false;
     if (owner === opposite) return true;
     return state.players[opposite].eliminated && isEmperor(state, owner);
   }

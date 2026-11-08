@@ -53,6 +53,9 @@ test('观战台实验室：前端有刷新/渲染/四场切换与下载绑定', 
   // 新增牌包后，锦标赛牌包勾选框改由 /api/options 动态生成，避免 HTML 与常量脱节
   assert.match(app, /function renderTourneySets\(\)/);
   assert.match(app, /renderOptions\(\);\s*\n\s*renderTourneySets\(\);/, '启动时应同时渲染牌包勾选框');
+  // 2v2 报告与 3v3 报告的 audit 字段不同，账目格必须兼容，否则会渲染出 undefined
+  assert.match(app, /perModelSeatAppearances\s*\?\?/, '座位次数需兼容 3v3 报告（没有 perModelSeatAppearances）');
+  assert.match(app, /infeasibleRounds === undefined/, '3v3 报告没有前瞻回退字段，不能直接拼进文案');
 });
 
 test('观战台实验室：服务端有白名单只读 API 与下载端点', () => {
@@ -70,7 +73,7 @@ test('观战台实验室：服务端有白名单只读 API 与下载端点', () 
   }
 });
 
-test('实验室 API：四场报告精简可读、结论一致、可下载完整报告', async () => {
+test('实验室 API：八场报告精简可读、汇总由各场榜首推出、可下载完整报告', async () => {
   const child = spawn(process.execPath, ['src/server/server.js'], {
     cwd: ROOT, env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe']
   });
@@ -82,8 +85,17 @@ test('实验室 API：四场报告精简可读、结论一致、可下载完整�
     assert.equal(board.format, 'star-realms-sim-2v2-lab-board');
     assert.equal(board.runs.length, 8);
     assert.equal(Object.keys(board.models).length, 12);
-    assert.equal(board.summary.consistent, true);
-    assert.equal(board.summary.championId, 'deepseekv41flash');
+    // 「跨场榜首是否一致」必须由各场结果推出，不能写死某个模型名
+    const winnerIds = board.summary.winners.map(winner => winner.id);
+    assert.equal(winnerIds.length, 8);
+    assert.ok(winnerIds.every(id => id && board.models[id]), '每位榜首都应是已知模型');
+    const distinct = new Set(winnerIds).size === 1;
+    assert.equal(board.summary.consistent, distinct);
+    assert.equal(board.summary.championId, distinct ? winnerIds[0] : null);
+    for (const run of board.runs.filter(item => item.group === '3v3')) {
+      const winner = board.summary.winners.find(item => item.key === run.key);
+      assert.equal(winner.id, run.contribution.rows[0].id, `${run.key} 的榜首应等于该场 β 第一`);
+    }
     assert.deepEqual(board.runs.filter(run => run.group === '3v3').map(run => run.key),
       ['hydra3-core', 'hydra3-all', 'emperor-core', 'emperor-all']);
 

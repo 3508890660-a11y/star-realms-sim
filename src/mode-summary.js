@@ -33,6 +33,8 @@ const seed = loaded[0].data.config.masterSeed;
 const totalGames = loaded.reduce((sum, run) => sum + run.data.audit.playedGames, 0);
 lines.push(`> 四场正式赛 · 主种子 \`${seed}\` · 合计 ${totalGames} 局 · 12 届 × 完整单循环（3 轮 × 2 场）× BO6`);
 lines.push('');
+lines.push('> 规则修正说明：2026-11-08 修复大将战的提督对位——旧实现用「座位 +1」配对，在三种大将轮换下会各有一名提督的对位落到敌方大将身上，从而绕过「先解决对面提督」的限制。两场大将战已按修正后的规则用同一主种子重跑，本文件数字为修正后的结果。');
+lines.push('');
 
 const tops = loaded.map(run => {
   const top = run.data.contribution.rows[0];
@@ -68,7 +70,7 @@ const zTop = loaded.flatMap(run => run.data.contribution.rows.map(row => Math.ab
 const maxZ = Math.max(...zTop).toFixed(3);
 lines.push('');
 lines.push(`> 显著性提示：单场只有 ${loaded[0].data.audit.playedGames} 局，四场全部 β 的最大 |z| 为 ${maxZ}，` +
-  `${Number(maxZ) >= 1.96 ? '至少有一个名次差异达到 95% 显著。' : '均未达到 95% 显著——「四场第一一致」是跨场一致性观察，不等于已证明的强弱排序。'}`);
+  `${Number(maxZ) >= 1.96 ? '至少有一个名次差异达到 95% 显著。' : '均未达到 95% 显著——榜首与其后的差距仍在抽样波动范围内，不能据此断言强弱排序。'}`);
 lines.push('');
 
 lines.push('## 四场总览');
