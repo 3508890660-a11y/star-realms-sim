@@ -247,6 +247,7 @@
 - **报告采用范围**：视频与 B 站文案只用了 `reply/star-realms-swiss-report3.json`、`team-swiss-report2.json`、`replay2.json`、`tournaments/swiss-models-20261105-guided.json` 与 README；`replay1.json`、`swiss-report1/2.json`、`team-swiss-report1.json`、`swiss-final-20261105*.json`、`team-swiss-20261106-preforward.json` 均为迭代留痕，未用于结论。
 - **结论适用范围**：所有胜率、β、CI 与 z 只适用于本赛制、本牌包与这组种子；2v2 胜负由队伍共享，个人指标是统计估计而非直接测量。
 - **仓库边界**：`video/` 始终被 `.gitignore` 排除，两次推送后远端 `contents/video` 均为 404；PAT 仅临时注入推送命令，未写入 `.git/config`，仍建议用后撤销。
+- **已发布视频的口径**：纪录片与 B 站文案使用的是**修正前**的团队模式数字（2V2 组队赛 86.04%、2V2 实验室 88.96% 等），与当前 `reply/` 报告不一致；视频只作为当时状态的记录，结论以本文件阶段 11 之后的报告为准。
 - **本次 UI 的边界**：只读展示 `reply/` 已落盘报告；不提供「从界面启动新实验」，复现仍走 `src/team-lab-cli.js` 或 `src/mode-tourney-cli.js` 命令行。
 - **团队模式的剩余偏差**：回合结构与 2V2 起手牌已在阶段 11 修正；大将战的 1 贸易移牌仍允许任意队友（官方限「相邻队友」）。详见 `README.md` 16.7。
 - **3V3 结论强度**：单场 432 局，四场 β 的 |z| 最大 1.872，均未达 95% 显著；「deepseek v4.1flash 四场第一」是跨场一致性，不是已证明的排序。前位队胜率低于 50% 是引擎起手张数规则所致，已在 README 第 16 节说明。
