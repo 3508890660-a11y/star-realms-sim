@@ -1,6 +1,6 @@
 # 星域奇航 AI 模拟器 · 项目时间线
 
-> 本文为 **2026-11-07「观战台 2V2 实验室标签页」更新**而写，以本次更新为终点回溯全项目。
+> 本文为 **2026-11-08「扩展牌包 + 3V3 模式」更新**而写，以本次更新为终点回溯全项目（初版写于 2026-11-07 观战台 UI 更新）。
 > 时间口径：git 提交时间与文件 mtime 为 UTC+8；报告 `generatedAt` 原为 UTC，下表已换算为 UTC+8。
 > 只记录可核验事实（提交哈希、落盘文件、报告字段、测试计数、截图），没有留痕的时刻标为「同日」，不推断、不补写。
 
@@ -17,7 +17,8 @@
 | 5 | 2026-11-06 10:51 | 本地初始提交 + GitHub 建仓首次上传 | `e4e849e`、仓库 `3508890660-a11y/star-realms-sim` |
 | 6 | 2026-11-06 22:40–22:53 | 2V2 实验室四场实验与报告 | `reply/star-realms-2v2-*.json/.md` |
 | 7 | 2026-11-06 22:56 | 实验成果推送 GitHub | `d4510f9` |
-| 8 | **2026-11-07 10:58–11:02** | **观战台 UI 更新 + 本时间线文档** | `public/*`、`src/server/server.js`、`test/lab-ui.test.js`、`TIMELINE.md` |
+| 8 | 2026-11-07 10:58–11:02 | 观战台 2V2 实验室标签页 + 本时间线文档初版 | `public/*`、`src/server/server.js`、`test/lab-ui.test.js`、`TIMELINE.md` |
+| 9 | **2026-11-08 20:19–20:45** | **扩展牌包（Frontiers + 两个危机小扩）、三头龙/大将战 3V3、四场正式赛** | `src/engine/expansions-extra.js`、`src/mode-tourney-cli.js`、`reply/star-realms-{hydra3,emperor}-*.json`、`reply/star-realms-3v3-summary.md` |
 
 ---
 
@@ -79,7 +80,7 @@
 - 远端 12 个关键路径全部 200（含 3.7M / 3.8M 大 JSON），`contents/video` 仍 404，remote URL 无 token。
 - 当晚 `github.com` 直连不稳（curl 3 次仅 1 次 200），git push 清空代理 env 后**第 4 次**成功。
 
-### 8) 2026-11-07 10:58–11:02 · 观战台 UI 更新（本次）
+### 8) 2026-11-07 10:58–11:02 · 观战台 UI 更新
 
 **触发**：用户先确认「观战台的 UI 界面更新了吗」，得到「未更新，实验是纯 CLI 链路」的答复；随后明确要求「更新观战台 UI，并为本次更新写一份时间线文档」。
 
@@ -106,6 +107,45 @@
 
 ---
 
+### 9) 2026-11-08 20:19–20:45 · 扩展牌包与 3V3 模式（本次）
+
+**触发**：用户要求「做一下其他扩展，并写大将战，多头龙模式的对战」。范围按确认后的口径执行：Frontiers 全量 + 两个 Crisis 小扩、Emperor 与 Commander 两套规则、6 人三头龙；「多头龙」对应官方 Two-Headed / Three-Headed Hydra，前者已由既有 `team2v2` 等价实现。
+
+| 时间 | 动作 | 文件 |
+|---|---|---|
+| 20:19:57 | 模式泛化：`TEAM_SPECS` 支持 2/3 人队，新增 `hydra3` 与 `emperor` 的攻击/目标/淘汰规则 | `src/engine/modes.js` |
+| 20:22:09 | 新增 6 项 6 人团队规则测试（共享权威、提督限制、大将阵亡、移牌） | `test/team-modes.test.js` |
+| 20:24:19 | 卡池接入三个新牌包与牌堆构建 | `src/engine/cards.js` |
+| 20:31:58 | 新增 6 人模式赛事执行器（随机三人队、完整单循环、BO6 座位/大将配平） | `src/mode-tourney-cli.js` |
+| 20:32:57 | 引擎补方言：双同盟、按费用获得战斗、弃牌换战斗、双基地条件、`topDeckNextBase`、`minScrap`、`acquireCheapFree.toTop` | `src/engine/engine.js` |
+| 20:33:30–34 | 生成脚本补「按已实现效果反写中文卡面」，生成 42 + 7 + 6 种 | `tools/build-extra-expansions.mjs`、`src/engine/expansions-extra.js` |
+| 20:34:47 | 新增 6 项扩展方言与 3V3 编排测试 | `test/extra-expansions.test.js` |
+| 20:35:55 | 实验室 API 扩到 8 场（2V2 四场 + 3V3 四场），按需精简 | `src/server/server.js` |
+| 20:37:07 | 前端：8 场切换、3V3 口径页、锦标赛牌包勾选改为动态渲染 | `public/app.js` |
+| 20:37:39 | 三头龙 · 核心完赛（432 局，159.5s） | `reply/star-realms-hydra3-core.json` |
+| 20:37:45 | 大将战 · 核心完赛（432 局，161.5s） | `reply/star-realms-emperor-core.json` |
+| 20:39:19 | 三头龙 · 全扩完赛（432 局，257.7s） | `reply/star-realms-hydra3-all.json` |
+| 20:39:33 | 大将战 · 全扩完赛（432 局，265.4s） | `reply/star-realms-emperor-all.json` |
+| 20:40:10 | 四场横向汇总 | `reply/star-realms-3v3-summary.md` |
+| 20:41:27 | 对话框标题改为「对局实验室 · 八场对照」，按钮改为「对局实验室」 | `public/index.html` |
+| 20:43 前后 | 无头 Edge 验收四张截图；README 第 16 节 | `test-artifacts/lab-ui-3v3-*.png`、`README.md` |
+
+**实现要点**
+
+- **扩展卡牌**：卡名/费用/张数取本地 `sr_all_cards.json`，效果显式映射；未映射的 6 种（Repair Mech、Warpgate Cruiser、Mobile Market、Death World、Construction Hauler、Mega Mech）不生成、不静默降级。卡面 `text` 由已实现效果反写，避免脚本读到与引擎不一致的卡面。
+- **双同盟兼容**：动作以 `ability: 'ally'` + `double: true` 下发，12 份既有脚本无需改动即可处理；引擎内部用 `ally` / `ally#2` 分别记账。
+- **3V3 赛制**：每届 12 模型随机分成 4 队，完整单循环（3 轮 × 2 场），每场 BO6；队内座位逐局轮换，每名队员在 6 个座位各坐 1 次，大将战另让每人各当 2 次大将。座位与角色配平在完赛时断言，不通过直接报错。
+- **前位偏差**：BO6 把先后手配成 3:3，但前位队胜率仍只有 41%–44%（三头龙）与 29%–33%（大将战），原因是引擎「先手 3 张、后手 5 张」；该数字只描述本规则，不代表赛制不公。
+
+**验收**
+
+- 全量测试 **87/87 通过**（新增 6 项扩展方言/编排测试 + 6 项 6 人团队规则测试；`test/lab-ui.test.js` 扩到 8 场断言）。
+- 四场账目：各 432/432 局、每人 216 局、零重赛、零异常重试、座位配平通过、大将角色配平通过、夺冠合计 36（12 届 × 3 人）。
+- 无头 Edge + CDP 实测：8 个赛事按钮、切到三头龙核心（432 局 / 43.75% / 座位配平）、切到大将战全扩看口径页与各届冠军页、回切 2V2 复制队榜 12 行；控制台无错误（`test-artifacts/lab-ui-3v3-*.png`）。
+- 显著性：单场 432 局，四场全部 β 的最大 |z| = 1.872，均未达 95% 显著；「四场第一一致」为跨场一致性观察，不作为已证明的强弱排序。
+
+---
+
 ## 三、证据索引
 
 | 事实 | 证据 |
@@ -114,10 +154,13 @@
 | 各阶段落盘时刻 | 文件 mtime（`stat -c %y`），见本文件 §二逐条 |
 | 赛果生成时刻 | 各报告 `generatedAt`（UTC，已换算 +08） |
 | 四场账目守恒 | `reply/star-realms-2v2-*.json` 的 `audit.playedGames / rematches / retries / seatBalanced` |
+| 3V3 四场账目守恒 | `reply/star-realms-{hydra3,emperor}-*.json` 的 `audit.playedGames / seatBalanced / emperorBalanced` |
+| 3V3 交叉结论与显著性 | `reply/star-realms-3v3-summary.md` |
+| 扩展卡牌覆盖率与未实现清单 | `tools/build-extra-expansions.mjs` 生成时的输出；`src/engine/expansions-extra.js` 的 55 种定义 |
 | 交叉结论 | `reply/star-realms-2v2-lab-summary.md` |
 | 视频与素材口径 | `README.md` 第 13 节；`video/storyboard.json` |
 | 模型 ID 验证 | `README.md` 第 7 节；`subagents.json` 的 `modelId / modelVerified` |
-| 本次 UI 验收 | `test/lab-ui.test.js`；`test-artifacts/lab-ui-*.png` |
+| 本次 UI 验收 | `test/lab-ui.test.js`；`test-artifacts/lab-ui-*.png`、`lab-ui-3v3-*.png` |
 | 工作日志 | `F:/producing/game/.workbuddy/memory/2026-11-05.md`、`2026-11-06.md` |
 
 ## 四、口径与边界
@@ -126,4 +169,5 @@
 - **报告采用范围**：视频与 B 站文案只用了 `reply/star-realms-swiss-report3.json`、`team-swiss-report2.json`、`replay2.json`、`tournaments/swiss-models-20261105-guided.json` 与 README；`replay1.json`、`swiss-report1/2.json`、`team-swiss-report1.json`、`swiss-final-20261105*.json`、`team-swiss-20261106-preforward.json` 均为迭代留痕，未用于结论。
 - **结论适用范围**：所有胜率、β、CI 与 z 只适用于本赛制、本牌包与这组种子；2v2 胜负由队伍共享，个人指标是统计估计而非直接测量。
 - **仓库边界**：`video/` 始终被 `.gitignore` 排除，两次推送后远端 `contents/video` 均为 404；PAT 仅临时注入推送命令，未写入 `.git/config`，仍建议用后撤销。
-- **本次 UI 的边界**：只读展示 `reply/` 已落盘报告；不提供「从界面启动新实验」，复现仍走 `src/team-lab-cli.js` 命令行。
+- **本次 UI 的边界**：只读展示 `reply/` 已落盘报告；不提供「从界面启动新实验」，复现仍走 `src/team-lab-cli.js` 或 `src/mode-tourney-cli.js` 命令行。
+- **3V3 结论强度**：单场 432 局，四场 β 的 |z| 最大 1.872，均未达 95% 显著；「deepseek v4.1flash 四场第一」是跨场一致性，不是已证明的排序。前位队胜率低于 50% 是引擎起手张数规则所致，已在 README 第 16 节说明。

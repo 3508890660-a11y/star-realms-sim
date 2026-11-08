@@ -553,3 +553,67 @@ node src/team-lab-summary.js
 
 **项目时间线**：[`TIMELINE.md`](TIMELINE.md) 以本次更新为终点，按 git 提交时间、报告 `generatedAt` 与文件 mtime 回溯全项目，并附证据索引与口径边界。
 
+
+## 16. 扩展牌包与 3V3 模式（三头龙 / 大将战，2026-11-08）
+
+### 16.1 新增牌包
+
+卡名、阵营、费用、防御、张数全部取自本地 `boardgame_rules/sr_all_cards.json`，效果由 `tools/build-extra-expansions.mjs` 显式映射；**未映射的卡不生成、不静默降级**，并在生成时列出。卡面 `text` 由「已实现效果」反写，保证脚本读到的卡面与引擎行为一致。
+
+| 牌包 | 官方 | 已实现 | 未实现 / 未纳入 |
+|---|---:|---:|---|
+| `frontiers`（Frontiers） | 48 种 / 136 张 | **42 种 / 75 张** | 未映射 3 种 5 张：Repair Mech（2）、Warpgate Cruiser（1）、Mobile Market（2）；另跳过起始牌 3 种 56 张（侦察舰 32 / 毒蛇 8 / 探索者 16，由核心盒提供） |
+| `crisisFleets`（Crisis: Fleets & Fortresses） | 8 种 / 12 张 | **7 种 / 11 张** | Death World（1 张） |
+| `crisisBases`（Crisis: Bases & Battleships） | 8 种 / 12 张 | **6 种 / 10 张** | Construction Hauler（1）、Mega Mech（1） |
+
+为此新增/补齐的声明式方言：`doubleAlly`（双同盟，需另两张同阵营卡）、`scrapRowGainCostCombat`（销毁交易行并按其费用获得战斗）、`gainCostCombat`（销毁手牌/弃牌并按费用获得战斗）、`combatIfScrap`、`combatIfTwoBases`、`combatIfEnemyTwoBases`、`authorityIfTwoBases`、`topDeckNextBase`、`minScrap`（「至多 N 张」）、`acquireCheapFree.toTop` 与类型筛选。
+
+> **兼容性处理**：双同盟动作仍以 `ability: 'ally'` 下发给脚本，另带 `double: true` 标记。这样 12 份既有脚本不必理解新键也不会崩；引擎内部用 `ally` / `ally#2` 两个键分别记账。
+
+### 16.2 新增模式
+
+| 模式 | 人数 | 规则要点 |
+|---|---|---|
+| `hydra3` 三头龙 | 6（3v3） | 官方 Three-Headed Hydra：两队各 3 人交替座位，**全队共享 100 权威**，队友可转移贸易/战斗，任一人有前哨则全队受保护 |
+| `emperor` 大将战 | 6（3v3） | 官方 Emperor：每队 1 大将（60 权威）+ 2 提督（50）；提督只能打对面提督，对面提督阵亡后才可打大将；**大将被击败则该队失败**；主阶段可花 1 贸易把弃牌堆一张交给相邻队友 |
+
+`team2v2` 等价于官方 Two-Headed Hydra（4 人共享 75 权威），规则未改。团队模式已从「写死 4 人」泛化为 `TEAM_SPECS`（`team2v2` / `hydra3`），淘汰判定、前哨保护、资源转移与事件主体都按队伍人数推导。
+
+### 16.3 赛制（6 人模式）
+
+- 每届把 12 个模型**随机分成 4 队、每队 3 人**；跨届队伍不同，采样 64 次随机排列后取「重复队友最少」的一份（只用于打散搭档，随机性仍来自主种子）。
+- 每届打**完整单循环**：3 轮 × 2 场，4 队两两交手一次，零重赛；场分胜 1 / 平 0.5 / 负 0。
+- 每场 **BO6**：前位队 3 局、后位队 3 局；队内座位逐局轮换，**每名队员在 6 个座位各坐 1 次**；大将战另让每人各当 **2 次大将**（逐局校验，`emperorBalanced` 必须为 true）。
+- 跑完立即写 `reply/star-realms-{mode}-{sets}.json/.md`。
+
+### 16.4 本次结果（主种子 `mode-3v3-2026-11-08`，4 场 × 432 局 = 1728 局）
+
+| 赛事 | 局数 | 个人 β 第一 | β | 在场胜率 | 前位队胜率 |
+|---|---:|---|---:|---:|---:|
+| `hydra3-core` | 432 | deepseek v4.1flash | 1.3452 | 69.91% | 43.75% |
+| `hydra3-all` | 432 | deepseek v4.1flash | 0.9031 | 68.06% | 41.20% |
+| `emperor-core` | 432 | deepseek v4.1flash | 0.619 | 58.80% | 32.64% |
+| `emperor-all` | 432 | deepseek v4.1flash | 0.4486 | 58.80% | 28.94% |
+
+四场账目全部守恒：每场 432/432 局、每人 216 局、零重赛、零异常重试、座位配平通过、大将角色配平通过，夺冠次数合计 36（12 届 × 3 人）。
+
+两点观察：
+- **前位队胜率明显低于 50%**（三头龙 41%–44%、大将战 29%–33%）。BO6 已把先后手配成 3:3，所以这不是赛制偏差，而是「先手只摸 3 张、后手摸 5 张」的引擎规则在 6 人局的放大；大将战更明显，因为大将只有 60 权威且是全队失败条件。
+- **大将战里「β 第一」与「在场胜率第一」会分叉**（核心场 β 第一是 deepseek，胜率第一是 MiniMax M3 60.65%），原因与 2V2 相同：队伍胜负共享，胜率会被队友抬高，故以 β 为主口径。
+- 单场 432 局的样本不大，四场全部 β 的最大 |z| 为 1.872，**均未达 95% 显著**；「四场第一一致」是跨场一致性观察，不等于已证明的强弱排序。
+
+> 口径差异：第 16 节的「全扩」= 核心 + 殖民战争 + 危机事件 + Frontiers + 两个危机小扩（6 包）；第 14 节 2V2 实验的「全扩」是 3 包。两者不可直接比较，报告的 `config.sets` 可核。
+
+### 16.5 运行与产物
+
+```bash
+node src/mode-tourney-cli.js --mode hydra3  --sets core --seasons 12 --seed mode-3v3-2026-11-08 --out reply/star-realms-hydra3-core
+node src/mode-tourney-cli.js --mode emperor --sets all  --seasons 12 --seed mode-3v3-2026-11-08 --out reply/star-realms-emperor-all
+node src/mode-summary.js      # 四场横向汇总 → reply/star-realms-3v3-summary.md
+node tools/build-extra-expansions.mjs "…/sr_all_cards.json"   # 仅在扩充卡池时手动运行
+```
+
+产物：4 份 `.json` + 4 份 `.md` + `star-realms-3v3-summary.md`。观战台「对局实验室」已从 4 场扩到 **8 场**（2V2 四场 + 3V3 四场），切换时账目、榜单、口径与复现命令同步更新。
+
+测试：新增 `test/extra-expansions.test.js`（双同盟、按费用获得战斗、弃牌换战斗、置顶获取、`topDeckNextBase`、3V3 座位/大将编排）与 `test/team-modes.test.js`（6 人团队规则），全量 **87/87 通过**。
+

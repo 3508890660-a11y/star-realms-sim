@@ -50,6 +50,9 @@ test('观战台实验室：前端有刷新/渲染/四场切换与下载绑定', 
   // 原有 1.5s 看板轮询不得被改动
   assert.match(app, /}, 1500\);/, '原有锦标赛看板轮询间隔应保持 1.5s');
   assert.match(app, /refreshTournament\(\);[\s\S]{0,120}refreshTeamTournament\(\);/);
+  // 新增牌包后，锦标赛牌包勾选框改由 /api/options 动态生成，避免 HTML 与常量脱节
+  assert.match(app, /function renderTourneySets\(\)/);
+  assert.match(app, /renderOptions\(\);\s*\n\s*renderTourneySets\(\);/, '启动时应同时渲染牌包勾选框');
 });
 
 test('观战台实验室：服务端有白名单只读 API 与下载端点', () => {
@@ -77,26 +80,35 @@ test('实验室 API：四场报告精简可读、结论一致、可下载完整�
     assert.equal(response.status, 200);
     const board = await response.json();
     assert.equal(board.format, 'star-realms-sim-2v2-lab-board');
-    assert.equal(board.runs.length, 4);
+    assert.equal(board.runs.length, 8);
     assert.equal(Object.keys(board.models).length, 12);
     assert.equal(board.summary.consistent, true);
     assert.equal(board.summary.championId, 'deepseekv41flash');
+    assert.deepEqual(board.runs.filter(run => run.group === '3v3').map(run => run.key),
+      ['hydra3-core', 'hydra3-all', 'emperor-core', 'emperor-all']);
 
     for (const run of board.runs) {
       assert.equal(run.missing, undefined, `${run.key} 报告应存在`);
       assert.equal(run.config.seasons, 12);
-      assert.equal(run.config.rounds, 5);
-      assert.equal(run.config.bo, 8);
       assert.equal(run.audit.rematches, 0);
       assert.equal(run.audit.retries, 0);
       assert.equal(run.audit.seatBalanced, true);
       assert.equal(run.members.length, 12);
       assert.equal(run.contribution.rows.length, 12);
       assert.equal(run.seasons.length, 12);
-      if (run.experiment === 'clone') assert.equal(run.aggregate.length, 12);
-      else assert.equal(run.aggregate, null);
+      if (run.group === '3v3') {
+        assert.equal(run.config.rounds, 3);
+        assert.equal(run.config.bo, 6);
+        assert.equal(run.audit.emperorBalanced, true);
+        assert.equal(run.aggregate, null, '3V3 场次没有复制队聚合榜');
+      } else {
+        assert.equal(run.config.rounds, 5);
+        assert.equal(run.config.bo, 8);
+        if (run.experiment === 'clone') assert.equal(run.aggregate.length, 12);
+        else assert.equal(run.aggregate, null);
+      }
     }
-    // 看板必须精简：四场合计远小于单份完整报告（3MB 级）
+    // 看板必须精简：八场合计远小于逐份完整报告之和（单份 0.6–3.8MB 级）
     assert.ok(JSON.stringify(board).length < 500000, '看板不应携带逐局明细');
     assert.ok(!JSON.stringify(board).includes('"winningTeam"'), '看板不应包含逐局胜负字段');
 

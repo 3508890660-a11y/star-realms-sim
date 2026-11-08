@@ -32,7 +32,7 @@ test('Web 服务支持独立脚本、人类视角、单步与回放导出', asyn
     await ready(child);
     const health = await json('/api/health'); assert.equal(health.ok, true);
     const options = await json('/api/options');
-    assert.equal(options.modes.length, 5); assert.equal(options.expansions.length, 3);
+    assert.equal(options.modes.length, 7); assert.equal(options.expansions.length, 6);
     const factory = await json('/api/subagents'); assert.equal(factory.agents.length, 12);
     assert.ok(factory.agents.some(agent => agent.designNote.length > 100));
     const tournament = await json('/api/tournament');

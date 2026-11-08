@@ -1,6 +1,6 @@
 import { CARD_DEFS, buildTradeDeckIds, normalizeExpansions, getCardDef, getFactions } from './cards.js';
 import { hashSeed, shuffle } from './rng.js';
-import { MODES, validateMode, alivePlayers, nextAlive, canAttackPlayer, canTargetBase, teamOf, teammates } from './modes.js';
+import { MODES, validateMode, alivePlayers, nextAlive, canAttackPlayer, canTargetBase, teamOf, teammates, isTeamMode, TEAM_SPECS, isEmperor } from './modes.js';
 
 const clone = value => structuredClone(value);
 const sameAction = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -32,7 +32,9 @@ export class Game {
     const count = config.players?.length || 2;
     validateMode(mode, count);
     const names = config.players?.map((p, i) => p.name || `玩家 ${i + 1}`) || ['玩家 1', '玩家 2'];
-    const isTeam = mode === 'team2v2';
+    const isTeam = isTeamMode(mode);
+    const teamSpec = isTeam ? TEAM_SPECS[mode] : null;
+    const emperorSeats = mode === 'emperor' ? (config.emperors || [0, 1]).slice() : [];
     const expansions = normalizeExpansions(config);
     this.state = {
       version: 2,
@@ -45,18 +47,20 @@ export class Game {
       activePlayer: 0,
       expansions,
       players: names.map((name, id) => ({
-        id, name, team: isTeam ? id % 2 : null,
-        authority: isTeam ? 75 : 50, trade: 0, combat: 0,
+        id, name, team: (isTeam || mode === 'emperor') ? id % 2 : null,
+        authority: emperorSeats.includes(id) ? 60 : (isTeam ? teamSpec.authority : 50), trade: 0, combat: 0,
         reserve: { trade: 0, combat: 0 },
         deck: [], hand: [], discard: [], inPlay: [],
-        used: {}, triggered: {}, topDeckNextShip: false,
+        used: {}, triggered: {}, triggeredDouble: {}, topDeckNextShip: false, topDeckNextBase: false,
         topDeckNextAny: false, nextAcquireToHand: false,
         scrappedThisTurn: 0, playedThisTurn: [], eliminated: false
       })),
-      teams: isTeam ? [
-        { id: 0, name: '第一舰队', players: [0, 2], authority: 75 },
-        { id: 1, name: '第二舰队', players: [1, 3], authority: 75 }
-      ] : [],
+      teams: (isTeam || mode === 'emperor') ? [0, 1].map(id => ({
+        id, name: id === 0 ? '第一舰队' : '第二舰队',
+        players: names.map((_, index) => index).filter(index => index % 2 === id),
+        authority: isTeam ? teamSpec.authority : 0
+      })) : [],
+      emperors: emperorSeats,
       cards: {},
       tradeDeck: [],
       tradeRow: [],
@@ -97,7 +101,10 @@ export class Game {
     for (const player of this.state.players) {
       const ids = [...Array(8).fill('scout'), ...Array(2).fill('viper')];
       player.deck = shuffle(this.state, ids.map(id => this.makeCard(id, player.id)));
-      const handSize = this.state.mode === 'standard' ? (player.id === 0 ? 3 : 5) : Math.min(5, player.id + 3);
+      const handSize = this.state.mode === 'standard' ? (player.id === 0 ? 3 : 5)
+        : (this.state.mode === 'hydra3' || this.state.mode === 'emperor')
+          ? (player.id % 2 === 0 ? 3 : 5)
+          : Math.min(5, player.id + 3);
       this.draw(player.id, handSize, false);
     }
     // 初始交易行不触发事件；被跳过的事件牌留在牌库中等待之后翻出。
@@ -130,7 +137,7 @@ export class Game {
   }
 
   adjustAuthority(playerId, delta) {
-    if (this.state.mode === 'team2v2') {
+    if (isTeamMode(this.state.mode)) {
       const team = this.state.teams[teamOf(this.state, playerId)];
       team.authority += delta;
       this.syncTeamAuthority(team.id);
@@ -138,7 +145,7 @@ export class Game {
   }
 
   loseAuthority(playerId, amount) {
-    const before = this.state.mode === 'team2v2'
+    const before = isTeamMode(this.state.mode)
       ? this.state.teams[teamOf(this.state, playerId)].authority
       : this.state.players[playerId].authority;
     const target = Math.max(1, before - amount);
@@ -183,7 +190,7 @@ export class Game {
   }
 
   eventSubjects() {
-    if (this.state.mode === 'team2v2') {
+    if (isTeamMode(this.state.mode)) {
       return this.state.teams.filter(team => team.players.some(id => !this.state.players[id].eliminated))
         .map(team => team.players.find(id => !this.state.players[id].eliminated));
     }
@@ -348,16 +355,22 @@ export class Game {
     for (const player of this.state.players) {
       for (const uid of player.inPlay) {
         const def = getCardDef(uid, this.state);
-        if (!def.ally || player.triggered[uid]) continue;
+        if (!def.ally && !def.doubleAlly) continue;
         const factions = getFactions(uid, this.state);
-        const triggered = player.inPlay.some(otherUid => {
-          if (otherUid === uid) return false;
+        let allies = 0;
+        for (const otherUid of player.inPlay) {
+          if (otherUid === uid) continue;
           const other = getCardDef(otherUid, this.state);
-          return other.allAlly || getFactions(otherUid, this.state).some(f => factions.includes(f));
-        });
-        if (triggered) {
+          if (other.allAlly || getFactions(otherUid, this.state).some(f => factions.includes(f))) allies++;
+        }
+        if (def.ally && !player.triggered[uid] && allies >= 1) {
           player.triggered[uid] = true;
           this.emit('allyReady', `${player.name} 的 ${def.name} 同盟能力已触发`, { playerId: player.id, cardId: uid });
+        }
+        // 双同盟：需要另外两张同阵营卡在场（官方 Double Ally）。
+        if (def.doubleAlly && !player.triggeredDouble[uid] && allies >= 2) {
+          player.triggeredDouble[uid] = true;
+          this.emit('allyReady', `${player.name} 的 ${def.name} 双同盟能力已触发`, { playerId: player.id, cardId: uid });
         }
       }
     }
@@ -375,6 +388,7 @@ export class Game {
     actions.push(...this.buyActions());
     actions.push(...this.attackActions());
     actions.push(...this.transferActions());
+    actions.push(...this.emperorMoveActions());
     actions.push({ type: 'endTurn' });
     return actions;
   }
@@ -387,6 +401,16 @@ export class Game {
     if (p.type === 'scrapMandatory') return unique(player.hand).map(cardId => ({ type: 'selectScrap', cardId }));
     if (p.type === 'eventChoice') return p.actions;
     throw new Error(`未知待决动作: ${p.type}`);
+  }
+
+  /** 免费/降价获取的费用与类型筛选；交易行空位与无费用卡一律不合法。 */
+  matchesAcquireSpec(cardId, spec = {}) {
+    if (!cardId) return false;
+    const def = CARD_DEFS[this.state.cards[cardId].id];
+    if (!def || def.cost === null || def.cost === undefined) return false;
+    if (spec.maxCost !== undefined && def.cost > spec.maxCost) return false;
+    if (spec.type && def.type !== spec.type) return false;
+    return true;
   }
 
   playActions(uid) {
@@ -416,6 +440,15 @@ export class Game {
             else actions.push({ type: 'play', cardId: uid, copy, choice });
           } else actions.push({ type: 'play', cardId: uid, copy, choice });
         });
+      } else if (def.type === 'ship' && def.primary?.acquireCheapFree) {
+        const spec = def.primary.acquireCheapFree;
+        const rows = s.tradeRow.map((cardId, row) => ({ cardId, row })).filter(({ cardId }) => this.matchesAcquireSpec(cardId, spec));
+        for (const { row } of rows) actions.push({ type: 'play', cardId: uid, copy, row });
+        if (!rows.length) actions.push({ type: 'play', cardId: uid, copy });
+      } else if (def.type === 'ship' && def.primary?.scrapRowGainCostCombat) {
+        s.tradeRow.forEach((cardId, row) => {
+          if (cardId && CARD_DEFS[s.cards[cardId].id].cost !== null) actions.push({ type: 'play', cardId: uid, copy, row });
+        });
       } else actions.push({ type: 'play', cardId: uid, copy });
     }
     return actions;
@@ -438,7 +471,7 @@ export class Game {
         });
       } else if (def.primary?.scrapOwn) {
         const candidates = unique(def.primary.zones.flatMap(zone => player[zone]));
-        for (const targets of combinations(candidates, def.primary.scrapOwn)) ability('primary', { targets });
+        for (const targets of combinations(candidates, def.primary.scrapOwn, def.primary.minScrap ?? def.primary.scrapOwn)) ability('primary', { targets });
       } else if (def.primary?.discardThenDraw) {
         for (const targets of combinations(unique(player.hand), def.primary.discardThenDraw, 0)) ability('primary', { targets });
       } else if (def.primary?.depot) {
@@ -451,7 +484,8 @@ export class Game {
     if (def.optionalPrimary && !used.includes('optional')) {
       if (def.optionalPrimary.scrapOwn) {
         const candidates = unique(def.optionalPrimary.zones.flatMap(zone => player[zone]));
-        for (const targets of combinations(candidates, def.optionalPrimary.scrapOwn)) ability('optional', { targets });
+        // minScrap 支持「至多 N 张」：允许 1..N，而不是只能选满 N 张。
+        for (const targets of combinations(candidates, def.optionalPrimary.scrapOwn, def.optionalPrimary.minScrap ?? def.optionalPrimary.scrapOwn)) ability('optional', { targets });
       }
       if (def.optionalPrimary.scrapRow) {
         const rows = s.tradeRow.map((cardId, row) => cardId ? row : null).filter(row => row !== null);
@@ -464,28 +498,41 @@ export class Game {
       }
     }
 
-    if (def.ally && player.triggered[uid] && !used.includes('ally')) {
-      if (def.ally.acquireShipFree) {
+    // 同盟 / 双同盟共用同一套动作展开，只是触发门槛与能力键不同。
+    // 双同盟仍以 ability: 'ally' 暴露给脚本（旧脚本不必理解新键），另带 double: true 标记。
+    const pushFaction = (kind, effect, double = false) => {
+      if (!effect) return;
+      const extra = double ? { double: true } : {};
+      if (effect.acquireShipFree) {
         s.tradeRow.forEach((cardId, row) => {
-          if (cardId && CARD_DEFS[s.cards[cardId].id].type === 'ship') ability('ally', { row });
+          if (cardId && CARD_DEFS[s.cards[cardId].id].type === 'ship') ability(kind, { row, ...extra });
         });
-      } else if (def.ally.acquireCheapFree) {
+      } else if (effect.acquireCheapFree) {
         s.tradeRow.forEach((cardId, row) => {
-          if (cardId && CARD_DEFS[s.cards[cardId].id].cost !== null && CARD_DEFS[s.cards[cardId].id].cost <= def.ally.acquireCheapFree.maxCost) ability('ally', { row });
+          if (cardId && this.matchesAcquireSpec(cardId, effect.acquireCheapFree)) ability(kind, { row, ...extra });
         });
-      } else if (def.ally.destroyAndOrScrap) {
+      } else if (effect.destroyAndOrScrap) {
         const bases = this.legalEnemyBases();
         const rows = s.tradeRow.map((cardId, row) => cardId ? row : null).filter(row => row !== null);
-        for (const targetId of bases) ability('ally', { targetId });
-        for (const row of rows) ability('ally', { row });
-        for (const targetId of bases) for (const row of rows) ability('ally', { targetId, row });
-      } else if (def.ally.destroyBase) {
-        for (const targetId of this.legalEnemyBases()) ability('ally', { targetId });
-      } else if (def.ally.scrapOwn) {
-        const candidates = unique(def.ally.zones.flatMap(zone => player[zone]));
-        for (const cardId of candidates) ability('ally', { targets: [cardId] });
-      } else ability('ally');
-    }
+        for (const targetId of bases) ability(kind, { targetId, ...extra });
+        for (const row of rows) ability(kind, { row, ...extra });
+        for (const targetId of bases) for (const row of rows) ability(kind, { targetId, row, ...extra });
+      } else if (effect.destroyBase) {
+        for (const targetId of this.legalEnemyBases()) ability(kind, { targetId, ...extra });
+      } else if (effect.scrapOwn) {
+        const candidates = unique(effect.zones.flatMap(zone => player[zone]));
+        for (const targets of combinations(candidates, effect.scrapOwn, effect.minScrap ?? effect.scrapOwn)) ability(kind, { targets, ...extra });
+      } else if (effect.scrapRowGainCostCombat) {
+        s.tradeRow.forEach((cardId, row) => {
+          if (cardId && CARD_DEFS[s.cards[cardId].id].cost !== null) ability(kind, { row, ...extra });
+        });
+      } else if (effect.discardThenDraw) {
+        for (const targets of combinations(unique(player.hand), effect.discardThenDraw, 0)) ability(kind, { targets, ...extra });
+      } else ability(kind, extra);
+    };
+
+    if (def.ally && player.triggered[uid] && !used.includes('ally')) pushFaction('ally', def.ally);
+    if (def.doubleAlly && player.triggeredDouble[uid] && !used.includes('ally#2')) pushFaction('ally', def.doubleAlly, true);
 
     if (def.scrap && !used.includes('scrap')) {
       if (def.scrap.destroyBase) {
@@ -508,7 +555,7 @@ export class Game {
   }
 
   transferActions() {
-    if (this.state.mode !== 'team2v2') return [];
+    if (!isTeamMode(this.state.mode)) return [];
     const player = this.state.players[this.state.activePlayer];
     const actions = [];
     for (const teammate of teammates(this.state, player.id)) {
@@ -519,8 +566,27 @@ export class Game {
     return actions;
   }
 
+  /** 大将战专属：花 1 贸易把弃牌堆一张牌交给相邻队友（队内顺序相邻，环形）。 */
+  emperorMoveActions() {
+    const s = this.state;
+    if (s.mode !== 'emperor') return [];
+    const player = s.players[s.activePlayer];
+    if (player.trade < 1 || !player.discard.length) return [];
+    const order = s.teams[teamOf(s, player.id)].players;
+    const index = order.indexOf(player.id);
+    const neighbors = [...new Set([
+      order[(index + 1) % order.length],
+      order[(index - 1 + order.length) % order.length]
+    ])].filter(id => id !== player.id && !s.players[id].eliminated);
+    const actions = [];
+    for (const uid of [...new Set(player.discard)]) {
+      for (const targetId of neighbors) actions.push({ type: 'moveCard', cardId: uid, targetId });
+    }
+    return actions;
+  }
+
   teamHasOutpost(owner) {
-    if (this.state.mode !== 'team2v2') return this.state.players[owner].inPlay.some(uid => getCardDef(uid, this.state).outpost);
+    if (!isTeamMode(this.state.mode)) return this.state.players[owner].inPlay.some(uid => getCardDef(uid, this.state).outpost);
     const team = this.state.teams[teamOf(this.state, owner)];
     return team.players.some(playerId => this.state.players[playerId].inPlay.some(uid => getCardDef(uid, this.state).outpost));
   }
@@ -577,6 +643,7 @@ export class Game {
         case 'buy': this.buy(action); break;
         case 'attack': this.attack(action); break;
         case 'transfer': this.transfer(action); break;
+        case 'moveCard': this.moveCard(action); break;
         case 'endTurn': this.endTurn(); break;
         default: throw new Error(`未知动作 ${action.type}`);
       }
@@ -614,6 +681,23 @@ export class Game {
     this.emit('transfer', `${player.name} 向 ${target.name} 预留 ${action.amount} ${{ trade: '贸易', combat: '战斗' }[action.resource]}`, { playerId: player.id, targetId: target.id, resource: action.resource, amount: action.amount });
   }
 
+  moveCard(action) {
+    const s = this.state;
+    const player = s.players[s.activePlayer];
+    if (s.mode !== 'emperor') throw new Error('只有大将战支持移交弃牌');
+    if (player.trade < 1) throw new Error('移交弃牌需要 1 贸易');
+    const index = player.discard.indexOf(action.cardId);
+    if (index < 0) throw new Error('该牌不在弃牌堆');
+    const target = s.players[action.targetId];
+    if (!target || target.eliminated) throw new Error('目标队友不可用');
+    if (target.team !== player.team) throw new Error('只能交给队友');
+    player.trade -= 1;
+    player.discard.splice(index, 1);
+    target.discard.push(action.cardId);
+    s.cards[action.cardId].owner = target.id;
+    this.emit('moveCard', `${player.name} 花 1 贸易把一张牌交给 ${target.name}`, { playerId: player.id, targetId: target.id, cardId: action.cardId });
+  }
+
   play(action) {
     const s = this.state;
     const player = s.players[s.activePlayer];
@@ -631,6 +715,23 @@ export class Game {
       const cardId = s.tradeRow[action.row];
       if (cardId) {
         this.acquire(cardId, player, true, false);
+        s.tradeRow[action.row] = null;
+        this.refillTradeRow(action.row);
+      }
+    }
+    if (effect?.scrapRowGainCostCombat && action.row !== undefined) {
+      const cardId = s.tradeRow[action.row];
+      if (cardId) {
+        const cost = CARD_DEFS[s.cards[cardId].id].cost || 0;
+        player.combat += cost;
+        this.emit('resource', `${player.name} 销毁交易行卡牌，获得 ${cost} 战斗`, { playerId: player.id, combat: cost });
+        this.scrapTradeRow(action.row);
+      }
+    }
+    if (effect?.acquireCheapFree && action.row !== undefined) {
+      const cardId = s.tradeRow[action.row];
+      if (cardId) {
+        this.acquire(cardId, player, true, !!effect.acquireCheapFree.toTop);
         s.tradeRow[action.row] = null;
         this.refillTradeRow(action.row);
       }
@@ -657,6 +758,20 @@ export class Game {
       player.combat += effect.combatIfEnemyBase;
       gains.push(`${effect.combatIfEnemyBase} 战斗`);
     }
+    const myBases = player.inPlay.filter(uid => getCardDef(uid, s).type === 'base').length;
+    if (effect.combatIfTwoBases && myBases >= 2) {
+      player.combat += effect.combatIfTwoBases;
+      gains.push(`${effect.combatIfTwoBases} 战斗`);
+    }
+    if (effect.combatIfEnemyTwoBases && alivePlayers(s).some(p => p.id !== player.id
+      && p.inPlay.filter(uid => getCardDef(uid, s).type === 'base').length >= 2)) {
+      player.combat += effect.combatIfEnemyTwoBases;
+      gains.push(`${effect.combatIfEnemyTwoBases} 战斗`);
+    }
+    if (effect.authorityIfTwoBases && myBases >= 2) {
+      this.adjustAuthority(player.id, effect.authorityIfTwoBases);
+      gains.push(`${effect.authorityIfTwoBases} 权威`);
+    }
     if (effect.combatPerScrapOwn && player.scrappedThisTurn) {
       const amount = effect.combatPerScrapOwn * player.scrappedThisTurn;
       player.combat += amount;
@@ -680,6 +795,10 @@ export class Game {
     if (effect.topDeckNextShip) {
       player.topDeckNextShip = true;
       this.emit('effect', `${player.name} 的下一艘购入飞船将置于牌库顶`, { playerId: player.id });
+    }
+    if (effect.topDeckNextBase) {
+      player.topDeckNextBase = true;
+      this.emit('effect', `${player.name} 的下一座购入基地将置于牌库顶`, { playerId: player.id });
     }
     if (effect.topDeckNextAny) {
       player.topDeckNextAny = true;
@@ -712,12 +831,13 @@ export class Game {
     const uid = action.cardId;
     const def = getCardDef(uid, s);
     const kind = action.ability;
+    const isDouble = !!action.double;
     player.used[uid] ||= [];
-    player.used[uid].push(kind);
-    this.emit('ability', `${player.name} 发动 ${def.name} 的${{ primary: '主要', optional: '可选', ally: '同盟', scrap: '销毁' }[kind]}能力`, { playerId: player.id, cardId: uid, ability: kind });
+    player.used[uid].push(isDouble ? 'ally#2' : kind);
+    this.emit('ability', `${player.name} 发动 ${def.name} 的${{ primary: '主要', optional: '可选', ally: isDouble ? '双同盟' : '同盟', scrap: '销毁' }[kind]}能力`, { playerId: player.id, cardId: uid, ability: kind, double: isDouble });
 
     if (kind === 'scrap') this.scrapFrom(player, uid);
-    let effect = kind === 'ally' ? def.ally : kind === 'scrap' ? def.scrap : kind === 'optional' ? def.optionalPrimary : def.primary;
+    let effect = kind === 'ally' ? (isDouble ? def.doubleAlly : def.ally) : kind === 'scrap' ? def.scrap : kind === 'optional' ? def.optionalPrimary : def.primary;
     if (def.primaryChoice && kind === 'primary') effect = def.primaryChoice[action.choice];
 
     if (kind === 'primary' && def.primary?.scrapOwnMandatory) {
@@ -726,7 +846,19 @@ export class Game {
       return;
     }
     if (effect?.scrapOwn) {
-      for (const cardId of action.targets || []) this.scrapFrom(player, cardId);
+      let extraCombat = 0;
+      for (const cardId of action.targets || []) {
+        if (effect.gainCostCombat) extraCombat += CARD_DEFS[s.cards[cardId].id].cost || 0;
+        this.scrapFrom(player, cardId);
+      }
+      if (extraCombat) {
+        player.combat += extraCombat;
+        this.emit('resource', `${player.name} 按销毁卡牌费用获得 ${extraCombat} 战斗`, { playerId: player.id, combat: extraCombat });
+      }
+      if (effect.combatIfScrap && (action.targets || []).length) {
+        player.combat += effect.combatIfScrap;
+        this.emit('resource', `${player.name} 因销毁手牌获得 ${effect.combatIfScrap} 战斗`, { playerId: player.id, combat: effect.combatIfScrap });
+      }
       if (effect.drawPerScrap) this.draw(player.id, (action.targets || []).length);
       return;
     }
@@ -855,11 +987,12 @@ export class Game {
       ? player.playedThisTurn.some(cardId => getFactions(cardId, s).includes(def.toHandIfFaction))
       : false;
     const toHand = forceHand || player.nextAcquireToHand || playedFaction;
-    const top = !toHand && (forceTopDeck || player.topDeckNextAny || (def.type === 'ship' && player.topDeckNextShip));
+    const top = !toHand && (forceTopDeck || player.topDeckNextAny || (def.type === 'ship' && player.topDeckNextShip) || (def.type === 'base' && player.topDeckNextBase));
     if (toHand) player.hand.push(uid);
     else if (top) player.deck.unshift(uid);
     else player.discard.push(uid);
     if (def.type === 'ship') player.topDeckNextShip = false;
+    if (def.type === 'base') player.topDeckNextBase = false;
     if (player.topDeckNextAny) player.topDeckNextAny = false;
     if (player.nextAcquireToHand) player.nextAcquireToHand = false;
     const destination = toHand ? '手牌' : top ? '牌库顶' : '弃牌堆';
@@ -880,7 +1013,7 @@ export class Game {
       const target = s.players[action.targetId];
       this.adjustAuthority(target.id, -action.amount);
       this.emit('attack', `${player.name} 对 ${target.name} 造成 ${action.amount} 点伤害`, { playerId: player.id, targetId: target.id, amount: action.amount });
-      const remaining = s.mode === 'team2v2' ? s.teams[teamOf(s, target.id)].authority : target.authority;
+      const remaining = isTeamMode(s.mode) ? s.teams[teamOf(s, target.id)].authority : target.authority;
       if (remaining <= 0) this.eliminate(target.id, player.id);
     }
   }
@@ -889,7 +1022,57 @@ export class Game {
     const s = this.state;
     const player = s.players[playerId];
     if (player.eliminated) return;
-    if (s.mode === 'team2v2') {
+    if (s.mode === 'emperor') {
+      player.eliminated = true;
+      player.authority = 0;
+      const emperorSeat = s.emperors[teamOf(s, playerId)];
+      const emperor = s.players[emperorSeat];
+      // 提督阵亡时，可把一张牌交给本队大将；自动对局默认取弃牌堆第一张，保证可复现。
+      let moved = null;
+      if (!isEmperor(s, playerId) && emperor && !emperor.eliminated) {
+        moved = player.discard[0] || player.hand[0] || player.deck[0] || null;
+        if (moved) {
+          for (const zone of ['discard', 'hand', 'deck']) {
+            const index = player[zone].indexOf(moved);
+            if (index >= 0) { player[zone].splice(index, 1); break; }
+          }
+          emperor.discard.push(moved);
+          s.cards[moved].owner = emperorSeat;
+        }
+      }
+      for (const zone of ['deck', 'hand', 'discard', 'inPlay']) {
+        for (const uid of player[zone].splice(0)) {
+          if (s.cards[uid].id === 'explorer') s.explorers++;
+          else s.scrapHeap.push(uid);
+        }
+      }
+      this.emit('eliminated', `${player.name} 被击败${moved ? '，一张牌移交本队大将' : ''}`, { playerId, attacker });
+      if (s.pending?.player === playerId) s.pending = null;
+      if (isEmperor(s, playerId)) {
+        const losingTeam = teamOf(s, playerId);
+        const winningTeam = 1 - losingTeam;
+        for (const memberId of s.teams[losingTeam].players) {
+          const member = s.players[memberId];
+          if (member.eliminated) continue;
+          member.eliminated = true;
+          for (const zone of ['deck', 'hand', 'discard', 'inPlay']) {
+            for (const uid of member[zone].splice(0)) {
+              if (s.cards[uid].id === 'explorer') s.explorers++;
+              else s.scrapHeap.push(uid);
+            }
+          }
+        }
+        s.winningTeam = winningTeam;
+        s.winner = s.teams[winningTeam].players.find(id => !s.players[id].eliminated);
+        s.status = 'finished';
+        s.pending = null;
+        s.eventContext = null;
+        s.winReason = '大将被击败，其队伍失败';
+        this.emit('gameOver', `${s.players[s.winner].name} 所在舰队获胜：${s.winReason}`, { winner: s.winner, winningTeam });
+      }
+      return;
+    }
+    if (isTeamMode(s.mode)) {
       const losing = s.teams[teamOf(s, playerId)];
       const winning = s.teams[1 - losing.id];
       losing.authority = 0;
@@ -955,7 +1138,9 @@ export class Game {
     player.combat = 0;
     player.used = {};
     player.triggered = {};
+    player.triggeredDouble = {};
     player.topDeckNextShip = false;
+    player.topDeckNextBase = false;
     player.topDeckNextAny = false;
     player.nextAcquireToHand = false;
     player.scrappedThisTurn = 0;
@@ -1013,10 +1198,11 @@ export function describeAction(state, action) {
   const name = uid => uid && state.cards[uid] ? getCardDef(uid, state).name : uid;
   switch (action.type) {
     case 'play': return `打出 ${name(action.cardId)}${action.copy ? ` 复制 ${name(action.copy)}` : ''}${action.choice !== undefined ? `（选项 ${action.choice + 1}）` : ''}`;
-    case 'ability': return `${name(action.cardId)}：${{ primary: '主要', optional: '可选', ally: '同盟', scrap: '销毁' }[action.ability]}能力${action.targetId ? ` → ${name(action.targetId)}` : ''}${action.row !== undefined ? ` → 交易行 ${action.row + 1}` : ''}${action.rows ? ` → 交易行 ${action.rows.map(row => row + 1).join('/')}` : ''}${action.targets?.length ? ` → ${action.targets.map(name).join('、')}` : ''}`;
+    case 'ability': return `${name(action.cardId)}：${{ primary: '主要', optional: '可选', ally: action.double ? '双同盟' : '同盟', scrap: '销毁' }[action.ability]}能力${action.targetId ? ` → ${name(action.targetId)}` : ''}${action.row !== undefined ? ` → 交易行 ${action.row + 1}` : ''}${action.rows ? ` → 交易行 ${action.rows.map(row => row + 1).join('/')}` : ''}${action.targets?.length ? ` → ${action.targets.map(name).join('、')}` : ''}`;
     case 'buy': return action.explorer ? '购买探索者' : `购买交易行 ${action.row + 1} 号位卡牌`;
     case 'attack': return action.targetType === 'player' ? `攻击 ${state.players[action.targetId].name} ${action.amount} 点` : `攻击 ${name(action.targetId)} ${action.amount} 点`;
     case 'transfer': return `向 ${state.players[action.targetId].name} 预留 ${action.amount} ${{ trade: '贸易', combat: '战斗' }[action.resource]}`;
+    case 'moveCard': return `花 1 贸易把 ${state.cards[action.cardId]?.id || '一张牌'} 交给 ${state.players[action.targetId].name}`;
     case 'eventChoice': return action.pay ? '事件选择：失去 6 权威' : action.baseId ? `事件选择：摧毁 ${name(action.baseId)}` : action.cards ? `事件选择：将 ${action.cards.map(name).join('、')} 放回牌库顶` : `事件选择：${(action.targets || []).map(name).join('、') || '跳过'}`;
     case 'discard': return `弃掉 ${name(action.cardId)}`;
     case 'selectScrap': return `选择销毁 ${name(action.cardId)}`;

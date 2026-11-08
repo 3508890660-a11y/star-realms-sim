@@ -260,6 +260,32 @@ function renderLog() {
   if (atBottom) log.scrollTop = 0;
 }
 
+/**
+ * 锦标赛面板的牌包勾选框改由 /api/options 动态生成，
+ * 这样新增扩展（Frontiers / 危机小扩）不必再手改 HTML。
+ */
+function renderTourneySets() {
+  for (const id of ['#tourneySets', '#teamTourneySets']) {
+    const box = $(id);
+    if (!box) continue;
+    const checked = new Set([...box.querySelectorAll('input:checked')].map(input => input.value));
+    if (!checked.size) checked.add('core');
+    box.replaceChildren();
+    const label = document.createElement('span');
+    label.textContent = '牌包';
+    box.append(label);
+    for (const pack of options.expansions) {
+      const item = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = pack.id;
+      input.checked = checked.has(pack.id);
+      item.append(input, document.createTextNode(pack.name));
+      box.append(item);
+    }
+  }
+}
+
 function renderOptions() {
   const modeBox = $('#modeChoices');
   modeBox.replaceChildren();
@@ -606,12 +632,16 @@ let labData = null;
 let labRunKey = 'clone-core';
 let labTab = 'board';
 
-const LAB_RUN_ORDER = ['clone-core', 'clone-all', 'random-core', 'random-all'];
+const LAB_RUN_ORDER = ['clone-core', 'clone-all', 'random-core', 'random-all', 'hydra3-core', 'hydra3-all', 'emperor-core', 'emperor-all'];
 const LAB_RUN_LABELS = {
   'clone-core': ['实验 A · 核心', '同模型复制队 / 基础盒'],
-  'clone-all': ['实验 A · 全扩', '同模型复制队 / 三牌包'],
+  'clone-all': ['实验 A · 全扩', '同模型复制队 / 六牌包'],
   'random-core': ['实验 B · 核心', '随机组队 / 基础盒'],
-  'random-all': ['实验 B · 全扩', '随机组队 / 三牌包']
+  'random-all': ['实验 B · 全扩', '随机组队 / 六牌包'],
+  'hydra3-core': ['三头龙 · 核心', '3V3 共享 100 / 基础盒'],
+  'hydra3-all': ['三头龙 · 全扩', '3V3 共享 100 / 六牌包'],
+  'emperor-core': ['大将战 · 核心', '3V3 大将 60 / 基础盒'],
+  'emperor-all': ['大将战 · 全扩', '3V3 大将 60 / 六牌包']
 };
 const LAB_TABS = [['board', '总榜'], ['members', '在场统计'], ['seasons', '各届冠军'], ['notes', '口径与复现']];
 
@@ -639,6 +669,8 @@ function labTopName(run) {
   return labModel(run.contribution?.rows?.[0]?.id);
 }
 
+const is3v3Run = run => run?.experiment === 'hydra3' || run?.experiment === 'emperor';
+
 function labHeadline(available) {
   if (!available.length) return '<span class="stat">reply/ 下暂无实验室报告，可用 src/team-lab-cli.js 生成。</span>';
   const summary = labData.summary || {};
@@ -646,9 +678,9 @@ function labHeadline(available) {
   const total = available.reduce((sum, run) => sum + (run.audit?.playedGames || 0), 0);
   const seed = available[0].config?.masterSeed || '—';
   return `<span class="crown">CROSS-RUN RESULT · ${available.length} 场</span><span class="who">${escapeHtml(name)}</span>` +
-    `<span class="stat">${summary.consistent ? '<b>四场榜首完全一致</b>' : '榜首不完全一致，请对照各场明细'}</span>` +
-    `<span class="stat">实验 A 口径：复制队局胜率　·　实验 B 主口径：控制队友与对手后的个人 β</span>` +
-    `<span class="script">主种子 ${escapeHtml(seed)} · 合计 ${total} 局 · 12 届 × 5 轮 × BO8</span>`;
+    `<span class="stat">${summary.consistent ? `<b>${available.length} 场榜首完全一致</b>` : '榜首不完全一致，请对照各场明细'}</span>` +
+    `<span class="stat">2V2 复制队口径：局胜率　·　2V2/3V3 个人口径：控制队友与对手后的 β</span>` +
+    `<span class="script">主种子 ${escapeHtml(seed)} · 合计 ${total} 局</span>`;
 }
 
 function labSummaryHtml(available) {
@@ -707,7 +739,7 @@ function labSeasonsHtml(run) {
       ? (run.teams?.find(entry => entry.id === season.champion)?.vendor || season.champion)
       : (team ? team.players.map(player => player.display).join(' + ') : season.champion);
     const top = season.standings?.[0] || {};
-    const roster = run.experiment === 'random' && season.teamRoster
+    const roster = (run.experiment === 'random' || is3v3Run(run)) && season.teamRoster
       ? `<div class="roster">${season.teamRoster.map(entry => `<span>${entry.players.map(player => escapeHtml(player.display)).join(' + ')}</span>`).join('')}</div>`
       : '';
     return `<div class="lab-season"><h4>第 ${season.index} 届 · <span class="mono">${escapeHtml(season.seed)}</span> · 冠军 ${escapeHtml(championName)} · MP ${top.mp ?? '—'} / 局胜 ${top.gameWins ?? '—'}</h4>${roster}</div>`;
@@ -717,18 +749,23 @@ function labSeasonsHtml(run) {
 function labNotesHtml(run) {
   const config = run.config || {};
   const isClone = run.experiment === 'clone';
-  const command = `node src/team-lab-cli.js --experiment ${config.experiment} --sets ${config.setsKey} --seed ${config.masterSeed} --seasons ${config.seasons} --rounds ${config.rounds} --repeats ${config.repeats} --out ${config.outBase}`;
-  const design = isClone
+  const is3v3 = is3v3Run(run);
+  const command = is3v3
+    ? `node src/mode-tourney-cli.js --mode ${config.mode} --sets ${config.setsKey} --seasons ${config.seasons} --repeats ${config.repeats} --seed ${config.masterSeed} --out ${config.outBase}`
+    : `node src/team-lab-cli.js --experiment ${config.experiment} --sets ${config.setsKey} --seed ${config.masterSeed} --seasons ${config.seasons} --rounds ${config.rounds} --repeats ${config.repeats} --out ${config.outBase}`;
+  const design = is3v3
+    ? `每届把 12 个模型随机分成 4 队、每队 3 人，打完整单循环（3 轮 × 2 场，零重赛）。队伍胜负共享，用团队 Bradley–Terry 拟合 12 个 β 与前位截距 γ。${config.mode === 'emperor' ? '大将战每队 1 名大将（60 权威）+ 2 名提督（50 权威），提督只能打对面提督，大将被击败则全队失败。' : '三头龙全队共享 100 权威，队友间可转移贸易/战斗，任一人有前哨则全队受保护。'}`
+    : isClone
     ? '12 支队伍，每队由同一份 AI 脚本的两个副本组成；队友是自己的镜像，队伍成绩可近似归因为单个脚本的 2V2 能力。赛制参考 1v1：12 个参赛单位、每届 5 轮瑞士轮、同分优先 + 回溯零重赛，按局胜率聚合。'
     : '每届把 12 个模型随机两两配成 6 队，12 届队伍构成都不同；每届跑 5 轮组队瑞士轮（带剩余轮次可行性前瞻）。队伍胜负共享，因此用团队 Bradley–Terry 逻辑模型拟合 12 个 β 与前位截距 γ，控制队友与对手强度。';
   return `<div class="lab-notes"><h4>实验设计</h4><p>${design}</p>` +
-    `<p>每场 BO${config.bo} 覆盖「哪队占前位 × A 队谁在前 × B 队谁在前」共 8 种座位排列；2v2 中座位 [0,2] 一队、[1,3] 一队，共享 75 点权威。牌包：${escapeHtml((config.sets || []).join(' + '))}。</p>` +
+    `<p>${is3v3 ? `每场 BO${config.bo}：前位队 3 局、后位队 3 局，队内座位按局轮换，每名队员在 6 个座位各坐 1 次${config.mode === 'emperor' ? '，且各当 2 次大将' : ''}。` : `每场 BO${config.bo} 覆盖「哪队占前位 × A 队谁在前 × B 队谁在前」共 8 种座位排列；2v2 中座位 [0,2] 一队、[1,3] 一队，共享 75 点权威。`}牌包：${escapeHtml((config.sets || []).join(' + '))}。</p>` +
     '<h4>口径与局限</h4><ul>' +
-    '<li>2v2 胜负由队伍共享，个人指标都是统计估计而非直接测量；β 依赖「随机组队让队友/对手强度在期望上抵消」的设计假设。</li>' +
-    '<li>同一场 BO8 内对局并不独立，置信区间、SE 与 z 均为近似参考；结论只适用于本赛制、本牌包与这组种子。</li>' +
+    `<li>${is3v3 ? '3v3' : '2v2'} 胜负由队伍共享，个人指标都是统计估计而非直接测量；β 依赖「随机组队让队友/对手强度在期望上抵消」的设计假设。</li>` +
+    `<li>同一场 BO${config.bo} 内对局并不独立，置信区间、SE 与 z 均为近似参考；结论只适用于本赛制、本牌包与这组种子。</li>` +
     '<li>复制队两个副本各自拥有独立的 memory 与随机流，脚本模块级只有只读常量表，不存在跨座位状态串扰。</li>' +
-    '<li>全扩 = 核心 + 殖民战争 + 危机事件；事件牌翻出即结算，会改变牌库节奏，两种牌包名次不必相同。</li>' +
-    `<li>本场账目：${run.audit.playedGames} 局、重赛 ${run.audit.rematches}、重试 ${run.audit.retries}、前瞻回退 ${run.audit.infeasibleRounds}、座位配平 ${run.audit.seatBalanced ? '通过' : '未通过'}。</li>` +
+    '<li>全扩 = 核心 + 殖民战争 + 危机事件 + Frontiers + 两个危机小扩；事件牌翻出即结算，会改变牌库节奏，两种牌包名次不必相同。</li>' +
+    `<li>本场账目：${run.audit.playedGames} 局、重赛 ${run.audit.rematches}、重试 ${run.audit.retries}${run.audit.infeasibleRounds === undefined ? '' : `、前瞻回退 ${run.audit.infeasibleRounds}`}、座位配平 ${run.audit.seatBalanced ? '通过' : '未通过'}${run.audit.emperorBalanced === undefined ? '' : `、大将角色配平 ${run.audit.emperorBalanced ? '通过' : '未通过'}`}。</li>` +
     '</ul><h4>复现命令</h4><pre>' + escapeHtml(command) + '</pre>' +
     `<p class="source">数据源：${escapeHtml(run.file || '—')} · 生成于 ${escapeHtml(run.generatedAt ? new Date(run.generatedAt).toLocaleString() : '—')} · 完整逐局记录可点右下角「下载当前完整报告」</p></div>`;
 }
@@ -771,7 +808,7 @@ function renderLab() {
     ['赛制', `${config.seasons} × ${config.rounds}`, `每场 BO${config.bo}`],
     ['牌包', config.setsLabel || (config.sets || []).join('+'), `模式 ${config.mode}`],
     ['前位队胜率', pct(stats.frontSideRate), `${stats.frontSideWins}/${stats.totalGames}`],
-    ['座位配平', audit.seatBalanced ? '通过' : '未通过', '四座等频'],
+    ['座位配平', audit.seatBalanced ? '通过' : '未通过', is3v3Run(run) ? '六座等频' : '四座等频'],
     ['重赛 / 重试', `${audit.rematches} / ${audit.retries}`, `前瞻回退 ${audit.infeasibleRounds}`],
     ['每人参与局数', audit.perModelGames, `座位 ${audit.perModelSeatAppearances} 次`]
   ];
@@ -828,6 +865,7 @@ function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char
 try {
   [options, scripts] = await Promise.all([api('/api/options'), api('/api/scripts')]);
   renderOptions();
+  renderTourneySets();
   await Promise.all([refresh(), refreshSubagents(), refreshTournament(), refreshTeamTournament(), refreshLab()]);
   const events = new EventSource('/api/events');
   events.addEventListener('match', () => refresh());

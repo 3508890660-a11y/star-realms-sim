@@ -85,6 +85,57 @@ export function buildRandomTeams(catalog, seasonIndex, masterSeed, pairCounts = 
   return { teams, pairs: best };
 }
 
+/**
+ * 生成一届的随机三人队（3V3 模式用）。
+ * 与 buildRandomTeams 同思路：采样若干次随机排列，按「同一对队友重复出现」成本择优，
+ * 随机性完全来自 seasonSeed，成本只用于打散跨届重复搭档。
+ */
+export function buildRandomTrios(catalog, seasonIndex, masterSeed, pairCounts = new Map(), samples = 64) {
+  const byId = new Map(catalog.map(agent => [agent.id, agent]));
+  const ids = catalog.map(agent => agent.id);
+  if (ids.length % 3 !== 0) throw new Error('三人队要求模型数能被 3 整除');
+  const random = randomFrom(`${masterSeed}:trios:s${seasonIndex}`);
+  const costOf = trios => trios.reduce((sum, trio) => {
+    for (let i = 0; i < trio.length; i++) for (let j = i + 1; j < trio.length; j++) {
+      const key = [trio[i], trio[j]].sort().join('|');
+      const count = pairCounts.get(key) || 0;
+      sum += count * count + count;
+    }
+    return sum;
+  }, 0);
+
+  let best = null;
+  let bestCost = Infinity;
+  for (let i = 0; i < samples; i++) {
+    const order = shuffleWithRandom(ids, random);
+    const trios = [];
+    for (let k = 0; k < order.length; k += 3) trios.push(order.slice(k, k + 3));
+    const cost = costOf(trios);
+    if (cost < bestCost) { best = trios; bestCost = cost; }
+  }
+  const teams = best.map((members, index) => ({
+    id: `s${seasonIndex}-t${index + 1}`,
+    name: `第 ${seasonIndex} 届 · 队伍 ${index + 1}`,
+    kind: 'random',
+    vendor: members.map(id => byId.get(id).model).join(' + '),
+    players: members.map(id => {
+      const agent = byId.get(id);
+      return {
+        id, model: id, display: agent.model, modelId: agent.modelId,
+        strategy: agent.strategy, script: `script:${String(agent.file).split(/[\\/]/).pop()}`
+      };
+    })
+  }));
+  const used = teams.flatMap(team => team.players.map(player => player.id));
+  if (used.length !== ids.length || new Set(used).size !== ids.length) throw new Error('随机三人队必须让每个模型各出现一次');
+  const pairs = best.flatMap(trio => {
+    const out = [];
+    for (let i = 0; i < trio.length; i++) for (let j = i + 1; j < trio.length; j++) out.push([trio[i], trio[j]].sort());
+    return out;
+  });
+  return { teams, pairs };
+}
+
 /** Wilson score 置信区间。 */
 export function wilson(wins, games, z = 1.96) {
   if (!games) return [0, 0];
@@ -133,9 +184,10 @@ export function fitContribution(games, modelIds, { lambda = 0.1, iterations = 24
   for (const game of games) {
     const x = Array(n).fill(0);
     const m = game.models;
-    if (!m || m.length !== 4 || m.some(id => !index.has(id))) throw new Error('个人贡献拟合需要每局 4 个已知模型');
-    x[index.get(m[0])] += 1; x[index.get(m[2])] += 1;
-    x[index.get(m[1])] -= 1; x[index.get(m[3])] -= 1;
+    if (!m || m.length % 2 !== 0 || m.length < 4) throw new Error('个人贡献拟合需要每局至少 4 个座位且为偶数');
+    if (m.some(id => !index.has(id))) throw new Error('个人贡献拟合出现了名单外的模型');
+    // 队 0 占偶数座位，队 1 占奇数座位；3V3 与 2V2 用同一套线性预测器。
+    for (let seat = 0; seat < m.length; seat++) x[index.get(m[seat])] += seat % 2 === 0 ? 1 : -1;
     x[k] = 1;
     rows.push({ x, y: game.winningTeam === 0 ? 1 : 0 });
   }
@@ -176,7 +228,7 @@ export function fitContribution(games, modelIds, { lambda = 0.1, iterations = 24
   }).sort((a, b) => b.beta - a.beta || a.id.localeCompare(b.id));
   rowsOut.forEach((row, i) => { row.rank = i + 1; });
   return {
-    model: 'logit P(front wins) = sum(beta of seats 0,2) - sum(beta of seats 1,3) + gamma',
+    model: 'logit P(front wins) = sum(beta of even seats) - sum(beta of odd seats) + gamma',
     lambda, iterations, samples: rows.length,
     frontAdvantage: +theta[k].toFixed(4),
     converged: inv !== null,
@@ -193,25 +245,30 @@ export function fitContribution(games, modelIds, { lambda = 0.1, iterations = 24
 export function memberStats(games, modelIds) {
   const stat = new Map(modelIds.map(id => [id, {
     id, games: 0, wins: 0, seatAppearances: 0,
-    seats: [0, 0, 0, 0],
+    seats: [],
     frontGames: 0, frontWins: 0,
     partners: new Map(), opponents: new Map()
   }]));
   for (const game of games) {
     const m = game.models;
-    if (!m || m.length !== 4) throw new Error('在场统计需要每局 4 个模型');
+    if (!m || m.length % 2 !== 0) throw new Error('在场统计需要偶数个座位（2V2 / 3V3）');
+    const seatCount = m.length;
+    const evenSeats = [...Array(seatCount).keys()].filter(seat => seat % 2 === 0);
+    const oddSeats = [...Array(seatCount).keys()].filter(seat => seat % 2 === 1);
     for (const id of new Set(m)) {
       const row = stat.get(id);
       if (!row) throw new Error(`未知模型：${id}`);
-      const ownSeats = [0, 1, 2, 3].filter(seat => m[seat] === id);
-      const isFront = ownSeats.every(seat => seat === 0 || seat === 2);
+      if (!row.seats.length) row.seats = Array(seatCount).fill(0);
+      const ownSeats = [...Array(seatCount).keys()].filter(seat => m[seat] === id);
+      // 队 0 占偶数座位；同一模型的多个副本全部落在偶数座位时才算「前位队」。
+      const isFront = ownSeats.every(seat => seat % 2 === 0);
       const won = (game.winningTeam === 0) === isFront;
       row.games++;
       if (won) row.wins++;
       if (isFront) { row.frontGames++; if (won) row.frontWins++; }
       for (const seat of ownSeats) { row.seats[seat]++; row.seatAppearances++; }
-      const teamSeats = isFront ? [0, 2] : [1, 3];
-      const rivalSeats = isFront ? [1, 3] : [0, 2];
+      const teamSeats = isFront ? evenSeats : oddSeats;
+      const rivalSeats = isFront ? oddSeats : evenSeats;
       for (const partner of new Set(teamSeats.map(seat => m[seat]))) {
         if (partner === id) continue;
         row.partners.set(partner, (row.partners.get(partner) || 0) + 1);
@@ -255,6 +312,6 @@ export function modelsOfSeats(seatIds, bySeatId) {
     if (!player) throw new Error(`座位成员缺失：${id}`);
     return player.model;
   });
-  if (models.length !== 4) throw new Error('一局必须有 4 个座位');
+  if (models.length < 4 || models.length % 2 !== 0) throw new Error('一局必须有偶数个座位（至少 4 个）');
   return models;
 }

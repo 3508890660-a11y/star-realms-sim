@@ -27,10 +27,12 @@ function settleEvents(g) {
 }
 
 test('扩展牌包可任意组合且牌数守恒', () => {
-  assert.deepEqual(EXPANSION_PACKS.map(p => p.id), ['core', 'colonyWars', 'events']);
+  assert.deepEqual(EXPANSION_PACKS.map(p => p.id), ['core', 'colonyWars', 'events', 'frontiers', 'crisisFleets', 'crisisBases']);
   const cases = [
     [['core'], 80], [['colonyWars'], 80], [['core', 'colonyWars'], 160],
-    [['core', 'events'], 92], [['colonyWars', 'events'], 92], [['core', 'colonyWars', 'events'], 172]
+    [['core', 'events'], 92], [['colonyWars', 'events'], 92], [['core', 'colonyWars', 'events'], 172],
+    [['frontiers'], 75], [['crisisFleets'], 11], [['crisisBases'], 10],
+    [['core', 'frontiers'], 155], [['frontiers', 'crisisFleets', 'crisisBases'], 96]
   ];
   for (const [sets, count] of cases) {
     const options = normalizeExpansions({ expansions: { sets } });

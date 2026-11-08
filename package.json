@@ -13,6 +13,8 @@
     "lab": "node src/team-lab-cli.js",
     "lab:summary": "node src/team-lab-summary.js",
     "lab:recompute": "node src/team-lab-recompute.js",
+    "mode:3v3": "node src/mode-tourney-cli.js",
+    "mode:summary": "node src/mode-summary.js",
     "test": "node --test test/*.test.js"
   },
   "engines": {

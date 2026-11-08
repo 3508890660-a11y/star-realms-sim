@@ -21,10 +21,14 @@ const TEAM_PROGRESS_FILE = path.join(TOURNEY_DIR, 'team-progress.json');
 const TEAM_LATEST_FILE = path.join(TOURNEY_DIR, 'team-latest.json');
 const LAB_DIR = path.join(ROOT, 'reply');
 const LAB_RUNS = Object.freeze([
-  { key: 'clone-core', file: 'star-realms-2v2-clone-core.json', experiment: 'clone', sets: 'core' },
-  { key: 'clone-all', file: 'star-realms-2v2-clone-all.json', experiment: 'clone', sets: 'all' },
-  { key: 'random-core', file: 'star-realms-2v2-random-core.json', experiment: 'random', sets: 'core' },
-  { key: 'random-all', file: 'star-realms-2v2-random-all.json', experiment: 'random', sets: 'all' }
+  { key: 'clone-core', file: 'star-realms-2v2-clone-core.json', experiment: 'clone', sets: 'core', group: '2v2' },
+  { key: 'clone-all', file: 'star-realms-2v2-clone-all.json', experiment: 'clone', sets: 'all', group: '2v2' },
+  { key: 'random-core', file: 'star-realms-2v2-random-core.json', experiment: 'random', sets: 'core', group: '2v2' },
+  { key: 'random-all', file: 'star-realms-2v2-random-all.json', experiment: 'random', sets: 'all', group: '2v2' },
+  { key: 'hydra3-core', file: 'star-realms-hydra3-core.json', experiment: 'hydra3', sets: 'core', group: '3v3' },
+  { key: 'hydra3-all', file: 'star-realms-hydra3-all.json', experiment: 'hydra3', sets: 'all', group: '3v3' },
+  { key: 'emperor-core', file: 'star-realms-emperor-core.json', experiment: 'emperor', sets: 'core', group: '3v3' },
+  { key: 'emperor-all', file: 'star-realms-emperor-all.json', experiment: 'emperor', sets: 'all', group: '3v3' }
 ]);
 const subagentClients = new Set();
 let activeTournament = null;
@@ -142,7 +146,7 @@ let labCache = { signature: '', result: null };
 
 function briefLabRun(full, entry) {
   return {
-    key: entry.key, experiment: entry.experiment, sets: entry.sets,
+    key: entry.key, experiment: entry.experiment, sets: entry.sets, group: entry.group || '2v2',
     file: full.file, generatedAt: full.generatedAt,
     config: full.config, audit: full.audit, stats: full.stats,
     teams: full.teams || null,
@@ -152,7 +156,7 @@ function briefLabRun(full, entry) {
     contribution: full.contribution || null,
     // 看板只展示「各届冠军 + 随机组队名单」；逐轮逐局明细留在可下载的完整报告里。
     seasons: (full.seasons || []).map(season => ({
-      index: season.index, seed: season.seed, champion: season.champion,
+      index: season.index, seed: season.seedSeed || season.seed, champion: season.champion,
       audit: season.audit,
       teamRoster: season.teamRoster || null,
       standings: (season.standings || []).map(row => ({
@@ -169,7 +173,7 @@ function buildLabSummary(runs) {
     const id = run.experiment === 'clone'
       ? run.teams?.find(team => team.id === run.aggregate?.[0]?.id)?.players?.[0]?.model
       : run.contribution?.rows?.[0]?.id;
-    return { key: run.key, experiment: run.experiment, sets: run.sets, id: id || null };
+    return { key: run.key, experiment: run.experiment, sets: run.sets, group: run.group || '2v2', id: id || null };
   });
   const ids = [...new Set(winners.map(w => w.id).filter(Boolean))];
   return { winners, consistent: winners.length > 0 && ids.length === 1, championId: ids.length === 1 ? ids[0] : null };

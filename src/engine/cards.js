@@ -1,4 +1,5 @@
 import { COLONY_WARS_DEFS, EVENT_DEFS } from './expansions.js';
+import { FRONTIERS_DEFS, CRISISFLEETSANDFORTRESSES_DEFS, CRISISBASESBATTLESHIPS_DEFS } from './expansions-extra.js';
 
 export const FACTIONS = {
   neutral: { name: '无阵营', color: '#91a4ba' },
@@ -72,13 +73,23 @@ const CORE_DEFS = Object.fromEntries([
   base('tradingPost', '贸易站', 'Trading Post', 'federation', 3, 2, 4, { outpost: true, primaryChoice: [{ authority: 1 }, { trade: 1 }], scrap: { combat: 3 }, text: '前哨。选择：获得 1 权威或 1 贸易。销毁：获得 3 战斗。' })
 ].map(card => [card.id, Object.freeze(card)]));
 
-export const CARD_DEFS = Object.freeze({ ...CORE_DEFS, ...COLONY_WARS_DEFS, ...EVENT_DEFS });
+export const CARD_DEFS = Object.freeze({
+  ...CORE_DEFS, ...COLONY_WARS_DEFS, ...EVENT_DEFS,
+  ...FRONTIERS_DEFS, ...CRISISFLEETSANDFORTRESSES_DEFS, ...CRISISBASESBATTLESHIPS_DEFS
+});
+
+const packSize = defs => Object.values(defs).reduce((sum, card) => sum + card.qty, 0);
 
 export const EXPANSION_PACKS = Object.freeze([
   { id: 'core', name: '基础盒交易牌堆', en: 'Core Set', kind: 'trade', cards: 80, default: true, description: '48 种卡牌，共 80 张；标准基础环境。' },
   { id: 'colonyWars', name: '殖民战争交易牌堆', en: 'Colony Wars', kind: 'trade', cards: 80, default: false, description: '43 种全新卡牌，共 80 张；可单独或混洗。' },
-  { id: 'events', name: '危机事件牌', en: 'Crisis: Events', kind: 'event', cards: 12, default: false, description: '8 种事件共 12 张，洗入交易牌库；翻出即结算。' }
+  { id: 'events', name: '危机事件牌', en: 'Crisis: Events', kind: 'event', cards: 12, default: false, description: '8 种事件共 12 张，洗入交易牌库；翻出即结算。' },
+  { id: 'frontiers', name: '边疆交易牌堆', en: 'Frontiers', kind: 'trade', cards: packSize(FRONTIERS_DEFS), default: false, description: `已实现 ${Object.keys(FRONTIERS_DEFS).length} 种 / ${packSize(FRONTIERS_DEFS)} 张交易牌；起始牌与探索者复用基础盒。` },
+  { id: 'crisisFleets', name: '危机：舰队与要塞', en: 'Crisis: Fleets and Fortresses', kind: 'trade', cards: packSize(CRISISFLEETSANDFORTRESSES_DEFS), default: false, description: `已实现 ${Object.keys(CRISISFLEETSANDFORTRESSES_DEFS).length} 种 / ${packSize(CRISISFLEETSANDFORTRESSES_DEFS)} 张。` },
+  { id: 'crisisBases', name: '危机：基地与战列舰', en: 'Crisis: Bases and Battleships', kind: 'trade', cards: packSize(CRISISBASESBATTLESHIPS_DEFS), default: false, description: `已实现 ${Object.keys(CRISISBASESBATTLESHIPS_DEFS).length} 种 / ${packSize(CRISISBASESBATTLESHIPS_DEFS)} 张。` }
 ]);
+
+const TRADE_PACK_IDS = ['core', 'colonyWars', 'frontiers', 'crisisFleets', 'crisisBases'];
 
 const expand = (pool, ids) => ids.flatMap(id => Array(CARD_DEFS[id].qty).fill(id));
 
@@ -87,10 +98,14 @@ export const CORE_TRADE_CARD_IDS = Object.values(CORE_DEFS)
   .map(card => card.id);
 export const COLONY_WARS_TRADE_CARD_IDS = Object.values(COLONY_WARS_DEFS).map(card => card.id);
 export const EVENT_CARD_IDS = Object.values(EVENT_DEFS).map(card => card.id);
+export const FRONTIERS_TRADE_CARD_IDS = Object.values(FRONTIERS_DEFS).map(card => card.id);
+export const CRISIS_FLEETS_CARD_IDS = Object.values(CRISISFLEETSANDFORTRESSES_DEFS).map(card => card.id);
+export const CRISIS_BASES_CARD_IDS = Object.values(CRISISBASESBATTLESHIPS_DEFS).map(card => card.id);
 export const TRADE_CARD_IDS = CORE_TRADE_CARD_IDS;
 export const TRADE_DECK_SIZE = expand(CARD_DEFS, CORE_TRADE_CARD_IDS).length;
 export const COLONY_WARS_DECK_SIZE = expand(CARD_DEFS, COLONY_WARS_TRADE_CARD_IDS).length;
 export const EVENT_DECK_SIZE = expand(CARD_DEFS, EVENT_CARD_IDS).length;
+export const FRONTIERS_DECK_SIZE = expand(CARD_DEFS, FRONTIERS_TRADE_CARD_IDS).length;
 
 export function normalizeExpansions(config = {}) {
   const input = config.expansions || {};
@@ -108,12 +123,16 @@ export function normalizeExpansions(config = {}) {
     if (config.events || input.events) sets.push('events');
   } else sets = EXPANSION_PACKS.filter(pack => pack.default).map(pack => pack.id);
   sets = [...new Set(sets.filter(id => EXPANSION_PACKS.some(pack => pack.id === id)))];
-  if (!sets.some(id => ['core', 'colonyWars'].includes(id))) sets.unshift('core');
+  if (!sets.some(id => TRADE_PACK_IDS.includes(id))) sets.unshift('core');
   const core = sets.includes('core');
   const colonyWars = sets.includes('colonyWars');
   const events = sets.includes('events');
-  const deck = core && colonyWars ? 'mixed' : colonyWars ? 'colonyWars' : 'core';
-  return { sets, core, colonyWars, events, deck };
+  const frontiers = sets.includes('frontiers');
+  const crisisFleets = sets.includes('crisisFleets');
+  const crisisBases = sets.includes('crisisBases');
+  const tradeSets = sets.filter(id => TRADE_PACK_IDS.includes(id));
+  const deck = tradeSets.length > 1 ? 'mixed' : (tradeSets[0] || 'core');
+  return { sets, core, colonyWars, events, frontiers, crisisFleets, crisisBases, tradeSets, deck };
 }
 
 export function buildTradeDeckIds(config = {}) {
@@ -122,6 +141,9 @@ export function buildTradeDeckIds(config = {}) {
   if (options.core) ids.push(...expand(CARD_DEFS, CORE_TRADE_CARD_IDS));
   if (options.colonyWars) ids.push(...expand(CARD_DEFS, COLONY_WARS_TRADE_CARD_IDS));
   if (options.events) ids.push(...expand(CARD_DEFS, EVENT_CARD_IDS));
+  if (options.frontiers) ids.push(...expand(CARD_DEFS, FRONTIERS_TRADE_CARD_IDS));
+  if (options.crisisFleets) ids.push(...expand(CARD_DEFS, CRISIS_FLEETS_CARD_IDS));
+  if (options.crisisBases) ids.push(...expand(CARD_DEFS, CRISIS_BASES_CARD_IDS));
   return ids;
 }
 
