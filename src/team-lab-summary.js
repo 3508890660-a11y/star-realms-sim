@@ -32,6 +32,8 @@ lines.push('# 星域奇航 · 2V2 实验室汇总（四场对照）');
 lines.push('');
 lines.push(`> 主种子 \`${reports[0].data.config.masterSeed}\` · 生成于 ${new Date().toISOString()}`);
 lines.push('');
+lines.push('> 规则修正（2026-11-08）：起手牌改为官方「先手队全员 3 张、后手队全员 5 张」（旧实现误用自由混战的 3/4/5/5），并改为整队轮流——队内队友连续行动，弃手、补牌与基地伤害在队伍回合结束时结算。四场均已用同一主种子重跑。');
+lines.push('');
 lines.push('## 四场赛事');
 lines.push('');
 lines.push('| 实验 | 牌包 | 届数 × 轮数 | 每场 BO | 总局数 | 前位队胜率 | 座位配平 | 重赛 / 重试 | 耗时 |');

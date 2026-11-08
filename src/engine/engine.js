@@ -1,6 +1,6 @@
 import { CARD_DEFS, buildTradeDeckIds, normalizeExpansions, getCardDef, getFactions } from './cards.js';
 import { hashSeed, shuffle } from './rng.js';
-import { MODES, validateMode, alivePlayers, nextAlive, canAttackPlayer, canTargetBase, teamOf, teammates, isTeamMode, TEAM_SPECS, isEmperor } from './modes.js';
+import { MODES, validateMode, alivePlayers, nextAlive, nextTeamTurn, canAttackPlayer, canTargetBase, teamOf, teammates, isTeamMode, TEAM_SPECS, isEmperor } from './modes.js';
 
 const clone = value => structuredClone(value);
 const sameAction = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -101,9 +101,10 @@ export class Game {
     for (const player of this.state.players) {
       const ids = [...Array(8).fill('scout'), ...Array(2).fill('viper')];
       player.deck = shuffle(this.state, ids.map(id => this.makeCard(id, player.id)));
-      const handSize = this.state.mode === 'standard' ? (player.id === 0 ? 3 : 5)
-        : (this.state.mode === 'hydra3' || this.state.mode === 'emperor')
-          ? (player.id % 2 === 0 ? 3 : 5)
+      // 官方 Hydra / Emperor：先手队全员 3 张，后手队全员 5 张。
+      const teamLike = isTeamMode(this.state.mode) || this.state.mode === 'emperor';
+      const handSize = teamLike ? (player.id % 2 === 0 ? 3 : 5)
+        : this.state.mode === 'standard' ? (player.id === 0 ? 3 : 5)
           : Math.min(5, player.id + 3);
       this.draw(player.id, handSize, false);
     }
@@ -1122,18 +1123,8 @@ export class Game {
     }
   }
 
-  endTurn() {
-    const s = this.state;
-    const player = s.players[s.activePlayer];
-    for (const uid of player.inPlay) {
-      const raw = CARD_DEFS[s.cards[uid].id];
-      if (raw.copyShip || raw.copyBase) s.cards[uid].copiedFrom = null;
-    }
-    for (const uid of player.inPlay.splice(0)) {
-      if (getCardDef(uid, s).type === 'ship') player.discard.push(uid);
-      else player.inPlay.push(uid);
-    }
-    player.discard.push(...player.hand.splice(0));
+  /** 清掉个人回合的临时资源与标记（不涉及手牌、场上卡与基地伤害）。 */
+  resetTurnState(player) {
     player.trade = 0;
     player.combat = 0;
     player.used = {};
@@ -1145,12 +1136,49 @@ export class Game {
     player.nextAcquireToHand = false;
     player.scrappedThisTurn = 0;
     player.playedThisTurn = [];
-    s.damage = {};
-    this.draw(player.id, 5, false);
-    this.emit('endTurn', `${player.name} 结束回合并补至 5 张手牌`, { playerId: player.id });
-    s.activePlayer = nextAlive(s, player.id, 1);
+  }
+
+  /** 结束某名玩家的行动：场上飞船进弃牌堆、弃手、补五张（基地留在场上）。 */
+  closePlayerTurn(player, draw = true) {
+    const s = this.state;
+    for (const uid of player.inPlay) {
+      const raw = CARD_DEFS[s.cards[uid].id];
+      if (raw.copyShip || raw.copyBase) s.cards[uid].copiedFrom = null;
+    }
+    for (const uid of player.inPlay.splice(0)) {
+      if (getCardDef(uid, s).type === 'ship') player.discard.push(uid);
+      else player.inPlay.push(uid);
+    }
+    player.discard.push(...player.hand.splice(0));
+    this.resetTurnState(player);
+    if (draw) this.draw(player.id, 5, false);
+  }
+
+  /**
+   * 结束当前行动。团队模式（Hydra / Emperor）是整队轮流：
+   * 队内还有队友没行动时只结束本人行动，弃手、补牌与清基地伤害都留到队伍回合结束，
+   * 这样队友才能接着打同一座基地、转移的资源当回合到账。
+   */
+  endTurn() {
+    const s = this.state;
+    const player = s.players[s.activePlayer];
+    const teamMode = isTeamMode(s.mode) || s.mode === 'emperor';
+    const next = teamMode ? nextTeamTurn(s, player.id) : nextAlive(s, player.id, 1);
+    const teamTurnEnds = !teamMode || next === null || teamOf(s, next) !== teamOf(s, player.id);
+
+    this.resetTurnState(player);
+    if (teamTurnEnds) {
+      const team = teamMode ? s.teams[teamOf(s, player.id)] : null;
+      const finishers = team ? team.players.filter(id => !s.players[id].eliminated) : [player.id];
+      for (const id of finishers) this.closePlayerTurn(s.players[id], true);
+      s.damage = {};
+      this.emit('endTurn', team ? `${team.name} 回合结束，全队补至 5 张手牌` : `${player.name} 结束回合并补至 5 张手牌`, { playerId: player.id });
+    } else {
+      this.emit('endTurn', `${player.name} 结束行动，队友继续`, { playerId: player.id });
+    }
+    s.activePlayer = next;
     s.turn++;
-    if (s.activePlayer !== null) this.beginTurn(s.activePlayer);
+    if (next !== null) this.beginTurn(next);
     this.refreshAllies();
   }
 

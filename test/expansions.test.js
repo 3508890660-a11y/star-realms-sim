@@ -162,15 +162,14 @@ test('2V2 任意队友的前哨保护整个团队', () => {
   assert.ok(!g.legalActions().some(a => a.type === 'attack' && a.targetType === 'player'));
 });
 
-test('2V2 资源预留会在队友回合开始时进入其资源池', () => {
+test('2V2 转移的资源在队友回合开始时进入其资源池（同一队伍回合内）', () => {
   const g = make('team2v2', 4);
   const p = isolate(g, 0); p.trade = 4;
   g.applyAction({ type: 'transfer', targetId: 2, resource: 'trade', amount: 4 });
   assert.equal(p.trade, 0);
   assert.equal(g.state.players[2].reserve.trade, 4);
   g.applyAction({ type: 'endTurn' });
-  g.applyAction({ type: 'endTurn' });
-  assert.equal(g.state.activePlayer, 2);
+  assert.equal(g.state.activePlayer, 2, '队内应直接轮到队友，中间不夹对手回合');
   assert.equal(g.state.players[2].trade, 4);
 });
 

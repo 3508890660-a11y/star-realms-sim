@@ -79,6 +79,23 @@ export function nextAlive(state, from, direction = 1) {
   return null;
 }
 
+/**
+ * 团队模式的回合顺序：同队队友按座位升序连续行动完，再换另一队。
+ * 官方 Hydra / Emperor 都是「整队轮流」，队友之间不应夹着对手的回合。
+ */
+export function nextTeamTurn(state, from) {
+  const team = state.players[from].team;
+  const order = state.players.filter(player => player.team === team).map(player => player.id).sort((a, b) => a - b);
+  const index = order.indexOf(from);
+  for (let i = index + 1; i < order.length; i++) {
+    if (!state.players[order[i]].eliminated) return order[i];
+  }
+  const rival = state.players.filter(player => player.team !== team).map(player => player.id).sort((a, b) => a - b);
+  for (const id of rival) if (!state.players[id].eliminated) return id;
+  for (const player of state.players) if (!player.eliminated) return player.id;
+  return null;
+}
+
 export function canAttackPlayer(state, attacker, target) {
   if (attacker === target || state.players[target].eliminated || state.players[attacker].eliminated) return false;
   if (isTeamMode(state.mode)) return teamOf(state, attacker) !== teamOf(state, target);

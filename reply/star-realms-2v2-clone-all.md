@@ -1,12 +1,12 @@
 # 星域奇航 · 2V2 实验室 · 实验 A 同模型复制队（全扩）
 
-> 运行 ID `clone-all-12x5-1793975745418` · 主种子 `lab-2v2-2026-11-06` · 生成于 2026-11-06T14:49:12.406Z
+> 运行 ID `clone-all-12x5-1794144075245` · 主种子 `lab-2v2-2026-11-06` · 生成于 2026-11-08T13:36:06.501Z
 
 ## 结论
 
-**2V2 能力第一：deepseek v4.1flash**（deepseek v4.1flash 复制队，队友是该脚本自身的副本）。局胜率 **79.79%**（383/480），Wilson 95% CI [75.97%, 83.14%]；12 届中夺冠 **11** 次，平均名次 1.08，累计场分 57。
+**2V2 能力第一：deepseek v4.1flash**（deepseek v4.1flash 复制队，队友是该脚本自身的副本）。局胜率 **73.12%**（351/480），Wilson 95% CI [68.99%, 76.90%]；12 届中夺冠 **11** 次，平均名次 1.25，累计场分 54。
 
-亚军 deepseek v4pro 60.21%，差 19.58pp，两比例近似 z = 6.776，**达到 95% 显著**。
+亚军 MIMO-v2.6-pro 61.88%，差 11.24pp，两比例近似 z = 3.745，**达到 95% 显著**。
 
 ## 实验设计
 
@@ -44,39 +44,39 @@
 
 | 名次 | 模型 | 夺冠 | 平均名次 | 局胜率 | 局胜/总局 | 累计 MP | 前位 / 后位 | 平均 Buchholz |
 |---:|---|---:|---:|---:|---:|---:|---|---:|
-| 1 | deepseek v4.1flash | 11 | 1.08 | 79.79% | 383/480 | 57 | 84.58% / 75.00% | 14.13 |
-| 2 | deepseek v4pro | 0 | 3.83 | 60.21% | 289/480 | 40 | 67.92% / 52.50% | 14.29 |
-| 3 | GLM5.3 | 0 | 4.25 | 60.21% | 289/480 | 37.5 | 63.75% / 56.67% | 13.88 |
-| 4 | MiniMax M3 | 1 | 3.33 | 60.00% | 288/480 | 39.5 | 65.83% / 54.17% | 13.63 |
-| 5 | MIMO-v2.6-pro | 0 | 4.42 | 57.92% | 278/480 | 36.5 | 65.42% / 50.42% | 14.42 |
-| 6 | KIMI 3.1pro | 0 | 7 | 54.37% | 261/480 | 27 | 62.08% / 46.67% | 10.88 |
-| 7 | KIMI 2.8preview | 0 | 6.83 | 53.33% | 256/480 | 30.5 | 62.08% / 44.58% | 10.92 |
-| 8 | GLM5.3flash | 0 | 7 | 52.29% | 251/480 | 30 | 60.42% / 44.17% | 13 |
-| 9 | hy3 | 0 | 8.83 | 46.67% | 224/480 | 24.5 | 50.83% / 42.50% | 11.29 |
-| 10 | hy4 | 0 | 8.67 | 44.58% | 214/480 | 24.5 | 47.50% / 41.67% | 11.5 |
-| 11 | step5preview | 0 | 10.75 | 29.17% | 140/480 | 13 | 31.25% / 27.08% | 10.79 |
-| 12 | MiniMax M3.1flash | 0 | 12 | 1.46% | 7/480 | 0 | 1.67% / 1.25% | 11.29 |
+| 1 | deepseek v4.1flash | 11 | 1.25 | 73.12% | 351/480 | 54 | 77.08% / 69.17% | 14.04 |
+| 2 | MIMO-v2.6-pro | 1 | 3.08 | 61.88% | 297/480 | 42 | 70.83% / 52.92% | 13.92 |
+| 3 | MiniMax M3 | 0 | 4.67 | 61.67% | 296/480 | 36 | 64.17% / 59.17% | 13.04 |
+| 4 | GLM5.3 | 0 | 3.75 | 60.62% | 291/480 | 39 | 63.75% / 57.50% | 14.17 |
+| 5 | deepseek v4pro | 0 | 4.42 | 59.17% | 284/480 | 37.5 | 64.17% / 54.17% | 13.21 |
+| 6 | GLM5.3flash | 0 | 5.58 | 54.58% | 262/480 | 33.5 | 59.58% / 49.58% | 13.75 |
+| 7 | KIMI 3.1pro | 0 | 7.42 | 51.88% | 249/480 | 28.5 | 55.83% / 47.92% | 11.88 |
+| 8 | KIMI 2.8preview | 0 | 7.58 | 50.83% | 244/480 | 28 | 56.25% / 45.42% | 12.08 |
+| 9 | hy3 | 0 | 8.92 | 47.08% | 226/480 | 24.5 | 51.25% / 42.92% | 10.96 |
+| 10 | hy4 | 0 | 8.42 | 46.04% | 221/480 | 23.5 | 45.83% / 46.25% | 11.08 |
+| 11 | step5preview | 0 | 10.92 | 30.83% | 148/480 | 13.5 | 33.75% / 27.92% | 10.5 |
+| 12 | MiniMax M3.1flash | 0 | 12 | 2.29% | 11/480 | 0 | 2.08% / 2.50% | 11.38 |
 
 ## 各届冠军
 
-第 1 届：deepseek v4.1flash（MP 5，局胜 33）；第 2 届：deepseek v4.1flash（MP 5，局胜 32）；第 3 届：deepseek v4.1flash（MP 5，局胜 31）；第 4 届：deepseek v4.1flash（MP 5，局胜 31）；第 5 届：deepseek v4.1flash（MP 4.5，局胜 34）；第 6 届：deepseek v4.1flash（MP 4.5，局胜 31）；第 7 届：MiniMax M3（MP 4.5，局胜 25）；第 8 届：deepseek v4.1flash（MP 5，局胜 30）；第 9 届：deepseek v4.1flash（MP 5，局胜 33）；第 10 届：deepseek v4.1flash（MP 4.5，局胜 33）；第 11 届：deepseek v4.1flash（MP 4.5，局胜 28）；第 12 届：deepseek v4.1flash（MP 5，局胜 34）。
+第 1 届：deepseek v4.1flash（MP 4.5，局胜 27）；第 2 届：deepseek v4.1flash（MP 4，局胜 30）；第 3 届：deepseek v4.1flash（MP 5，局胜 30）；第 4 届：deepseek v4.1flash（MP 4.5，局胜 31）；第 5 届：deepseek v4.1flash（MP 5，局胜 27）；第 6 届：deepseek v4.1flash（MP 5，局胜 33）；第 7 届：deepseek v4.1flash（MP 4.5，局胜 27）；第 8 届：deepseek v4.1flash（MP 4.5，局胜 30）；第 9 届：deepseek v4.1flash（MP 5，局胜 36）；第 10 届：deepseek v4.1flash（MP 5，局胜 30）；第 11 届：deepseek v4.1flash（MP 4，局胜 26）；第 12 届：MIMO-v2.6-pro（MP 5，局胜 29）。
 
 ## 个人在场统计
 
 | 模型 | 参与局（去重） | 座位次数 | 所在队伍胜局 | 队伍胜率 | Wilson 95% CI | 前位队胜率 | 搭档数 | 对手数 | 所在队伍夺冠 | 座位分布 |
 |---|---:|---:|---:|---:|---|---:|---:|---:|---:|---|
-| deepseekv41flash | 480 | 960 | 383 | 79.79% | [75.97%, 83.14%] | 84.58% | 0 | 11 | 11 | 240/240/240/240 |
-| deepseekv4pro | 480 | 960 | 289 | 60.21% | [55.77%, 64.49%] | 67.92% | 0 | 11 | 0 | 240/240/240/240 |
-| glm53 | 480 | 960 | 289 | 60.21% | [55.77%, 64.49%] | 63.75% | 0 | 11 | 0 | 240/240/240/240 |
-| minimaxm3 | 480 | 960 | 288 | 60.00% | [55.55%, 64.29%] | 65.83% | 0 | 11 | 1 | 240/240/240/240 |
-| mimov26pro | 480 | 960 | 278 | 57.92% | [53.45%, 62.25%] | 65.42% | 0 | 11 | 0 | 240/240/240/240 |
-| kimi31pro | 480 | 960 | 261 | 54.37% | [49.90%, 58.78%] | 62.08% | 0 | 11 | 0 | 240/240/240/240 |
-| kimi28preview | 480 | 960 | 256 | 53.33% | [48.86%, 57.75%] | 62.08% | 0 | 11 | 0 | 240/240/240/240 |
-| glm53flash | 480 | 960 | 251 | 52.29% | [47.82%, 56.72%] | 60.42% | 0 | 11 | 0 | 240/240/240/240 |
-| hy3 | 480 | 960 | 224 | 46.67% | [42.25%, 51.14%] | 50.83% | 0 | 11 | 0 | 240/240/240/240 |
-| hy4 | 480 | 960 | 214 | 44.58% | [40.20%, 49.06%] | 47.50% | 0 | 11 | 0 | 240/240/240/240 |
-| step5preview | 480 | 960 | 140 | 29.17% | [25.28%, 33.39%] | 31.25% | 0 | 11 | 0 | 240/240/240/240 |
-| minimaxm31flash | 480 | 960 | 7 | 1.46% | [0.71%, 2.98%] | 1.67% | 0 | 11 | 0 | 240/240/240/240 |
+| deepseekv41flash | 480 | 960 | 351 | 73.12% | [68.99%, 76.90%] | 77.08% | 0 | 11 | 11 | 240/240/240/240 |
+| mimov26pro | 480 | 960 | 297 | 61.88% | [57.45%, 66.11%] | 70.83% | 0 | 11 | 1 | 240/240/240/240 |
+| minimaxm3 | 480 | 960 | 296 | 61.67% | [57.24%, 65.91%] | 64.17% | 0 | 11 | 0 | 240/240/240/240 |
+| glm53 | 480 | 960 | 291 | 60.62% | [56.19%, 64.89%] | 63.75% | 0 | 11 | 0 | 240/240/240/240 |
+| deepseekv4pro | 480 | 960 | 284 | 59.17% | [54.71%, 63.47%] | 64.17% | 0 | 11 | 0 | 240/240/240/240 |
+| glm53flash | 480 | 960 | 262 | 54.58% | [50.11%, 58.98%] | 59.58% | 0 | 11 | 0 | 240/240/240/240 |
+| kimi31pro | 480 | 960 | 249 | 51.88% | [47.41%, 56.31%] | 55.83% | 0 | 11 | 0 | 240/240/240/240 |
+| kimi28preview | 480 | 960 | 244 | 50.83% | [46.37%, 55.28%] | 56.25% | 0 | 11 | 0 | 240/240/240/240 |
+| hy3 | 480 | 960 | 226 | 47.08% | [42.66%, 51.55%] | 51.25% | 0 | 11 | 0 | 240/240/240/240 |
+| hy4 | 480 | 960 | 221 | 46.04% | [41.63%, 50.51%] | 45.83% | 0 | 11 | 0 | 240/240/240/240 |
+| step5preview | 480 | 960 | 148 | 30.83% | [26.87%, 35.10%] | 33.75% | 0 | 11 | 0 | 240/240/240/240 |
+| minimaxm31flash | 480 | 960 | 11 | 2.29% | [1.28%, 4.06%] | 2.08% | 0 | 11 | 0 | 240/240/240/240 |
 
 > 复制队里同一模型占两个座位，因此「座位次数」是「参与局」的两倍；胜率按去重后的参与局计算。
 
@@ -84,20 +84,20 @@
 
 | 名次 | 模型 | β | e^β | 近似 SE | 近似 z |
 |---:|---|---:|---:|---:|---:|
-| 1 | deepseekv41flash | 1.055 | 2.8721 | 0.9148 | 1.153 |
-| 2 | deepseekv4pro | 0.5183 | 1.6792 | 0.9143 | 0.567 |
-| 3 | glm53 | 0.5145 | 1.6728 | 0.9144 | 0.563 |
-| 4 | minimaxm3 | 0.4778 | 1.6126 | 0.9143 | 0.523 |
-| 5 | mimov26pro | 0.4674 | 1.5958 | 0.9143 | 0.511 |
-| 6 | glm53flash | 0.2436 | 1.2758 | 0.9143 | 0.266 |
-| 7 | kimi31pro | 0.0582 | 1.0599 | 0.9144 | 0.064 |
-| 8 | kimi28preview | 0.0392 | 1.0399 | 0.9143 | 0.043 |
-| 9 | hy3 | -0.0875 | 0.9162 | 0.9143 | -0.096 |
-| 10 | hy4 | -0.1574 | 0.8544 | 0.9145 | -0.172 |
-| 11 | step5preview | -0.784 | 0.4566 | 0.9153 | -0.857 |
-| 12 | minimaxm31flash | -2.3451 | 0.0958 | 0.93 | -2.522 |
+| 1 | deepseekv41flash | 0.8361 | 2.3073 | 0.9144 | 0.914 |
+| 2 | glm53 | 0.5065 | 1.6595 | 0.9142 | 0.554 |
+| 3 | mimov26pro | 0.4927 | 1.6368 | 0.9142 | 0.539 |
+| 4 | minimaxm3 | 0.4553 | 1.5767 | 0.9142 | 0.498 |
+| 5 | deepseekv4pro | 0.3757 | 1.4561 | 0.9142 | 0.411 |
+| 6 | glm53flash | 0.3254 | 1.3846 | 0.9142 | 0.356 |
+| 7 | kimi28preview | 0.076 | 1.079 | 0.9143 | 0.083 |
+| 8 | kimi31pro | 0.0748 | 1.0777 | 0.9142 | 0.082 |
+| 9 | hy3 | -0.1287 | 0.8792 | 0.9143 | -0.141 |
+| 10 | hy4 | -0.1835 | 0.8323 | 0.9143 | -0.201 |
+| 11 | step5preview | -0.7307 | 0.4816 | 0.9151 | -0.798 |
+| 12 | minimaxm31flash | -2.0996 | 0.1225 | 0.9241 | -2.272 |
 
-拟合样本 2880 局，前位截距 γ = 0.3255（正值表示前位队有优势），L2 正则 λ = 0.1，收敛 成功。
+拟合样本 2880 局，前位截距 γ = 0.2164（正值表示前位队有优势），L2 正则 λ = 0.1，收敛 成功。
 
 ## 账目守恒
 
@@ -109,468 +109,468 @@
 | 每个模型参与局数（去重） | 480 |
 | 每个模型座位次数 | 960 |
 | 重赛 / 异常重试 / 前瞻回退轮次 | 0 / 0 / 0 |
-| 前位队胜率 | 55.28%（1592/2880） |
+| 前位队胜率 | 53.72%（1547/2880） |
 | 座位配平 | 通过（每个模型在 4 个座位出现次数相同） |
-| 冠亚 95% CI | [75.97%, 83.14%] / [55.77%, 64.49%] |
-| 耗时 | 807.0s |
+| 冠亚 95% CI | [68.99%, 76.90%] / [57.45%, 66.11%] |
+| 耗时 | 891.2s |
 
 ## 各届逐轮明细
 
 ### 第 1 届 · 种子 lab-2v2-2026-11-06:clone:all:s1
 
 - 第 1 轮 · 配对顺序 KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队
-  - KIMI 2.8preview 复制队 2:6 KIMI 3.1pro 复制队
+  - KIMI 2.8preview 复制队 5:3 KIMI 3.1pro 复制队
   - hy3 复制队 1:7 MiniMax M3 复制队
   - deepseek v4pro 复制队 4:4 MIMO-v2.6-pro 复制队
   - deepseek v4.1flash 复制队 7:1 GLM5.3flash 复制队
   - step5preview 复制队 0:8 GLM5.3 复制队
   - MiniMax M3.1flash 复制队 0:8 hy4 复制队
-- 第 2 轮 · 配对顺序 GLM5.3 复制队 → KIMI 3.1pro 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队 → hy3 复制队 → step5preview 复制队 → GLM5.3flash 复制队
-  - GLM5.3 复制队 5:3 KIMI 3.1pro 复制队
-  - deepseek v4.1flash 复制队 6:2 MiniMax M3 复制队
-  - hy4 复制队 1:7 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 7:1 KIMI 2.8preview 复制队
+- 第 2 轮 · 配对顺序 GLM5.3 复制队 → MiniMax M3 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → hy3 复制队 → step5preview 复制队 → GLM5.3flash 复制队
+  - GLM5.3 复制队 4:4 MiniMax M3 复制队
+  - deepseek v4.1flash 复制队 5:3 KIMI 2.8preview 复制队
+  - hy4 复制队 2:6 MIMO-v2.6-pro 复制队
+  - deepseek v4pro 复制队 4:4 KIMI 3.1pro 复制队
   - MiniMax M3.1flash 复制队 0:8 hy3 复制队
-  - step5preview 复制队 0:8 GLM5.3flash 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 2:6 MiniMax M3 复制队
-  - deepseek v4pro 复制队 8:0 hy4 复制队
-  - KIMI 3.1pro 复制队 4:4 hy3 复制队
+  - step5preview 复制队 1:7 GLM5.3flash 复制队
+- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 4:4 GLM5.3 复制队
+  - MiniMax M3 复制队 3:5 MIMO-v2.6-pro 复制队
+  - deepseek v4pro 复制队 6:2 hy4 复制队
+  - KIMI 2.8preview 复制队 4:4 hy3 复制队
+  - GLM5.3flash 复制队 2:6 KIMI 3.1pro 复制队
+  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → step5preview 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队
+  - MIMO-v2.6-pro 复制队 3:5 deepseek v4.1flash 复制队
+  - deepseek v4pro 复制队 4:4 GLM5.3 复制队
+  - MiniMax M3 复制队 6:2 KIMI 2.8preview 复制队
+  - hy3 复制队 3:5 KIMI 3.1pro 复制队
+  - hy4 复制队 7:1 step5preview 复制队
   - GLM5.3flash 复制队 8:0 MiniMax M3.1flash 复制队
-  - step5preview 复制队 1:7 KIMI 2.8preview 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 deepseek v4pro 复制队
-  - GLM5.3 复制队 7:1 MiniMax M3 复制队
-  - GLM5.3flash 复制队 3:5 MIMO-v2.6-pro 复制队
-  - hy3 复制队 3:5 hy4 复制队
-  - KIMI 3.1pro 复制队 7:1 step5preview 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 MiniMax M3 复制队
+  - KIMI 3.1pro 复制队 1:7 MIMO-v2.6-pro 复制队
+  - GLM5.3 复制队 3:5 GLM5.3flash 复制队
+  - deepseek v4pro 复制队 8:0 step5preview 复制队
+  - hy4 复制队 5:3 hy3 复制队
   - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MiniMax M3 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
-  - deepseek v4.1flash 复制队 7:1 KIMI 3.1pro 复制队
-  - GLM5.3 复制队 5:3 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 6:2 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 6:2 hy4 复制队
-  - MiniMax M3 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy3 复制队 5:3 step5preview 复制队
 
 ### 第 2 届 · 种子 lab-2v2-2026-11-06:clone:all:s2
 
 - 第 1 轮 · 配对顺序 hy3 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → step5preview 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队
-  - hy3 复制队 2:6 deepseek v4.1flash 复制队
-  - GLM5.3flash 复制队 4:4 MiniMax M3 复制队
+  - hy3 复制队 0:8 deepseek v4.1flash 复制队
+  - GLM5.3flash 复制队 5:3 MiniMax M3 复制队
   - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy4 复制队 1:7 MIMO-v2.6-pro 复制队
+  - hy4 复制队 2:6 MIMO-v2.6-pro 复制队
   - step5preview 复制队 0:8 GLM5.3 复制队
-  - deepseek v4pro 复制队 6:2 KIMI 2.8preview 复制队
-- 第 2 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → hy3 复制队
-  - MIMO-v2.6-pro 复制队 5:3 deepseek v4pro 复制队
-  - KIMI 3.1pro 复制队 3:5 deepseek v4.1flash 复制队
-  - GLM5.3 复制队 7:1 GLM5.3flash 复制队
-  - MiniMax M3 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy4 复制队 4:4 KIMI 2.8preview 复制队
-  - step5preview 复制队 2:6 hy3 复制队
-- 第 3 轮 · 配对顺序 GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - GLM5.3 复制队 3:5 MIMO-v2.6-pro 复制队
-  - deepseek v4.1flash 复制队 6:2 MiniMax M3 复制队
-  - deepseek v4pro 复制队 5:3 hy3 复制队
-  - KIMI 3.1pro 复制队 5:3 KIMI 2.8preview 复制队
-  - hy4 复制队 3:5 GLM5.3flash 复制队
-  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → hy3 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 2:6 GLM5.3 复制队
-  - KIMI 3.1pro 复制队 1:7 MiniMax M3 复制队
-  - GLM5.3flash 复制队 5:3 hy3 复制队
-  - step5preview 复制队 2:6 KIMI 2.8preview 复制队
-  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → step5preview 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 8:0 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 3:5 MiniMax M3 复制队
+  - deepseek v4pro 复制队 7:1 KIMI 2.8preview 复制队
+- 第 2 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3 复制队 → hy4 复制队 → hy3 复制队
+  - MIMO-v2.6-pro 复制队 6:2 deepseek v4pro 复制队
+  - GLM5.3flash 复制队 5:3 KIMI 3.1pro 复制队
+  - deepseek v4.1flash 复制队 5:3 GLM5.3 复制队
+  - MiniMax M3.1flash 复制队 0:8 KIMI 2.8preview 复制队
+  - step5preview 复制队 0:8 MiniMax M3 复制队
+  - hy4 复制队 5:3 hy3 复制队
+- 第 3 轮 · 配对顺序 GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → hy4 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → hy3 复制队 → step5preview 复制队
+  - GLM5.3flash 复制队 6:2 MIMO-v2.6-pro 复制队
+  - deepseek v4.1flash 复制队 6:2 hy4 复制队
+  - GLM5.3 复制队 4:4 MiniMax M3 复制队
+  - deepseek v4pro 复制队 5:3 KIMI 3.1pro 复制队
+  - KIMI 2.8preview 复制队 4:4 hy3 复制队
+  - MiniMax M3.1flash 复制队 1:7 step5preview 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → hy4 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 8:0 GLM5.3flash 复制队
+  - deepseek v4pro 复制队 4:4 MiniMax M3 复制队
+  - MIMO-v2.6-pro 复制队 7:1 KIMI 2.8preview 复制队
+  - GLM5.3 复制队 7:1 hy4 复制队
+  - step5preview 复制队 2:6 KIMI 3.1pro 复制队
+  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 3:5 MIMO-v2.6-pro 复制队
   - GLM5.3flash 复制队 3:5 deepseek v4pro 复制队
-  - KIMI 3.1pro 复制队 7:1 step5preview 复制队
-  - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy4 复制队 4:4 hy3 复制队
+  - GLM5.3 复制队 5:3 KIMI 3.1pro 复制队
+  - MiniMax M3 复制队 6:2 KIMI 2.8preview 复制队
+  - hy3 复制队 7:1 step5preview 复制队
+  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
 
 ### 第 3 届 · 种子 lab-2v2-2026-11-06:clone:all:s3
 
 - 第 1 轮 · 配对顺序 MiniMax M3 复制队 → deepseek v4.1flash 复制队 → hy4 复制队 → hy3 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队
   - MiniMax M3 复制队 1:7 deepseek v4.1flash 复制队
-  - hy4 复制队 4:4 hy3 复制队
-  - deepseek v4pro 复制队 7:1 step5preview 复制队
+  - hy4 复制队 7:1 hy3 复制队
+  - deepseek v4pro 复制队 8:0 step5preview 复制队
   - MiniMax M3.1flash 复制队 0:8 GLM5.3flash 复制队
-  - KIMI 3.1pro 复制队 3:5 KIMI 2.8preview 复制队
+  - KIMI 3.1pro 复制队 4:4 KIMI 2.8preview 复制队
   - MIMO-v2.6-pro 复制队 5:3 GLM5.3 复制队
-- 第 2 轮 · 配对顺序 deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队
+- 第 2 轮 · 配对顺序 deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队
   - deepseek v4pro 复制队 3:5 deepseek v4.1flash 复制队
-  - GLM5.3flash 复制队 5:3 KIMI 2.8preview 复制队
-  - MIMO-v2.6-pro 复制队 7:1 hy4 复制队
-  - hy3 复制队 2:6 MiniMax M3 复制队
-  - step5preview 复制队 2:6 KIMI 3.1pro 复制队
+  - GLM5.3flash 复制队 6:2 hy4 复制队
+  - MIMO-v2.6-pro 复制队 5:3 KIMI 2.8preview 复制队
+  - KIMI 3.1pro 复制队 4:4 hy3 复制队
+  - step5preview 复制队 0:8 MiniMax M3 复制队
   - GLM5.3 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → hy4 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3flash 复制队
-  - MIMO-v2.6-pro 复制队 7:1 KIMI 3.1pro 复制队
-  - GLM5.3 复制队 7:1 KIMI 2.8preview 复制队
-  - deepseek v4pro 复制队 2:6 MiniMax M3 复制队
-  - hy4 复制队 6:2 step5preview 复制队
-  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → hy4 复制队 → hy3 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
-  - deepseek v4.1flash 复制队 5:3 MIMO-v2.6-pro 复制队
-  - GLM5.3flash 复制队 2:6 MiniMax M3 复制队
-  - GLM5.3 复制队 7:1 hy4 复制队
-  - hy3 复制队 4:4 deepseek v4pro 复制队
-  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-  - KIMI 2.8preview 复制队 6:2 step5preview 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → hy3 复制队 → hy4 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - MiniMax M3 复制队 4:4 MIMO-v2.6-pro 复制队
+- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 5:3 GLM5.3flash 复制队
+  - MIMO-v2.6-pro 复制队 6:2 hy4 复制队
+  - KIMI 3.1pro 复制队 2:6 GLM5.3 复制队
+  - deepseek v4pro 复制队 4:4 MiniMax M3 复制队
   - KIMI 2.8preview 复制队 4:4 hy3 复制队
-  - KIMI 3.1pro 复制队 5:3 GLM5.3flash 复制队
-  - hy4 复制队 1:7 deepseek v4pro 复制队
-  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
+  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → step5preview 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 7:1 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 1:7 GLM5.3 复制队
+  - deepseek v4pro 复制队 5:3 hy3 复制队
+  - MiniMax M3 复制队 6:2 KIMI 3.1pro 复制队
+  - step5preview 复制队 1:7 hy4 复制队
+  - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3 复制队
+  - MIMO-v2.6-pro 复制队 4:4 deepseek v4pro 复制队
+  - MiniMax M3 复制队 6:2 GLM5.3flash 复制队
+  - hy4 复制队 3:5 KIMI 2.8preview 复制队
+  - hy3 复制队 3:5 step5preview 复制队
+  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
 
 ### 第 4 届 · 种子 lab-2v2-2026-11-06:clone:all:s4
 
 - 第 1 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → MiniMax M3.1flash 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → MiniMax M3 复制队 → hy3 复制队 → GLM5.3 复制队
   - MIMO-v2.6-pro 复制队 8:0 MiniMax M3.1flash 复制队
-  - deepseek v4pro 复制队 2:6 deepseek v4.1flash 复制队
-  - KIMI 2.8preview 复制队 5:3 GLM5.3flash 复制队
-  - step5preview 复制队 0:8 hy4 复制队
-  - KIMI 3.1pro 复制队 1:7 MiniMax M3 复制队
-  - hy3 复制队 1:7 GLM5.3 复制队
-- 第 2 轮 · 配对顺序 hy4 复制队 → MiniMax M3 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - hy4 复制队 2:6 MiniMax M3 复制队
-  - deepseek v4.1flash 复制队 8:0 KIMI 2.8preview 复制队
-  - GLM5.3 复制队 4:4 MIMO-v2.6-pro 复制队
-  - hy3 复制队 2:6 deepseek v4pro 复制队
-  - GLM5.3flash 复制队 4:4 KIMI 3.1pro 复制队
-  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → step5preview 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4pro 复制队 1:7 deepseek v4.1flash 复制队
+  - KIMI 2.8preview 复制队 2:6 GLM5.3flash 复制队
+  - step5preview 复制队 2:6 hy4 复制队
+  - KIMI 3.1pro 复制队 3:5 MiniMax M3 复制队
+  - hy3 复制队 2:6 GLM5.3 复制队
+- 第 2 轮 · 配对顺序 hy4 复制队 → MiniMax M3 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - hy4 复制队 1:7 MiniMax M3 复制队
+  - deepseek v4.1flash 复制队 8:0 GLM5.3 复制队
+  - GLM5.3flash 复制队 4:4 MIMO-v2.6-pro 复制队
+  - hy3 复制队 2:6 KIMI 2.8preview 复制队
+  - deepseek v4pro 复制队 4:4 KIMI 3.1pro 复制队
+  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
   - deepseek v4.1flash 复制队 5:3 MiniMax M3 复制队
   - MIMO-v2.6-pro 复制队 8:0 step5preview 复制队
-  - GLM5.3 复制队 6:2 hy4 复制队
-  - KIMI 2.8preview 复制队 2:6 deepseek v4pro 复制队
-  - GLM5.3flash 复制队 6:2 hy3 复制队
+  - GLM5.3flash 复制队 7:1 hy4 复制队
+  - KIMI 2.8preview 复制队 5:3 GLM5.3 复制队
+  - deepseek v4pro 复制队 3:5 hy3 复制队
   - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 GLM5.3 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → hy4 复制队 → step5preview 复制队 → hy3 复制队 → deepseek v4pro 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 4:4 GLM5.3flash 复制队
   - MIMO-v2.6-pro 复制队 4:4 MiniMax M3 复制队
-  - deepseek v4pro 复制队 7:1 GLM5.3flash 复制队
-  - KIMI 3.1pro 复制队 8:0 step5preview 复制队
-  - KIMI 2.8preview 复制队 6:2 hy4 复制队
-  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → hy4 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 4:4 MiniMax M3 复制队
-  - KIMI 3.1pro 复制队 3:5 GLM5.3 复制队
-  - KIMI 2.8preview 复制队 4:4 hy3 复制队
-  - GLM5.3flash 复制队 8:0 step5preview 复制队
-  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
+  - KIMI 2.8preview 复制队 3:5 KIMI 3.1pro 复制队
+  - GLM5.3 复制队 8:0 hy4 复制队
+  - step5preview 复制队 3:5 hy3 复制队
+  - deepseek v4pro 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 7:1 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 3:5 MiniMax M3 复制队
+  - KIMI 3.1pro 复制队 4:4 GLM5.3 复制队
+  - hy3 复制队 1:7 hy4 复制队
+  - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
+  - deepseek v4pro 复制队 6:2 step5preview 复制队
 
 ### 第 5 届 · 种子 lab-2v2-2026-11-06:clone:all:s5
 
 - 第 1 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队 → GLM5.3 复制队 → hy4 复制队 → KIMI 2.8preview 复制队
-  - deepseek v4.1flash 复制队 4:4 deepseek v4pro 复制队
-  - MIMO-v2.6-pro 复制队 4:4 hy3 复制队
-  - MiniMax M3 复制队 5:3 KIMI 3.1pro 复制队
-  - step5preview 复制队 0:8 GLM5.3flash 复制队
+  - deepseek v4.1flash 复制队 5:3 deepseek v4pro 复制队
+  - MIMO-v2.6-pro 复制队 5:3 hy3 复制队
+  - MiniMax M3 复制队 4:4 KIMI 3.1pro 复制队
+  - step5preview 复制队 2:6 GLM5.3flash 复制队
   - MiniMax M3.1flash 复制队 0:8 GLM5.3 复制队
-  - hy4 复制队 6:2 KIMI 2.8preview 复制队
-- 第 2 轮 · 配对顺序 GLM5.3flash 复制队 → hy4 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → hy3 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → KIMI 3.1pro 复制队
-  - GLM5.3flash 复制队 6:2 hy4 复制队
-  - MiniMax M3 复制队 3:5 GLM5.3 复制队
-  - hy3 复制队 2:6 deepseek v4pro 复制队
-  - MIMO-v2.6-pro 复制队 1:7 deepseek v4.1flash 复制队
-  - KIMI 2.8preview 复制队 6:2 step5preview 复制队
-  - MiniMax M3.1flash 复制队 0:8 KIMI 3.1pro 复制队
-- 第 3 轮 · 配对顺序 GLM5.3 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - GLM5.3 复制队 5:3 GLM5.3flash 复制队
-  - deepseek v4pro 复制队 6:2 KIMI 2.8preview 复制队
-  - deepseek v4.1flash 复制队 8:0 hy4 复制队
-  - MiniMax M3 复制队 2:6 MIMO-v2.6-pro 复制队
+  - hy4 复制队 3:5 KIMI 2.8preview 复制队
+- 第 2 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → deepseek v4pro 复制队
+  - deepseek v4.1flash 复制队 5:3 MIMO-v2.6-pro 复制队
+  - KIMI 2.8preview 复制队 3:5 GLM5.3flash 复制队
+  - GLM5.3 复制队 5:3 MiniMax M3 复制队
   - KIMI 3.1pro 复制队 4:4 hy3 复制队
   - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 GLM5.3 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MiniMax M3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - GLM5.3 复制队 3:5 deepseek v4pro 复制队
-  - deepseek v4.1flash 复制队 8:0 GLM5.3flash 复制队
-  - KIMI 3.1pro 复制队 3:5 MIMO-v2.6-pro 复制队
-  - hy3 复制队 4:4 KIMI 2.8preview 复制队
-  - hy4 复制队 7:1 step5preview 复制队
-  - MiniMax M3 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4pro 复制队 4:4 MIMO-v2.6-pro 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - GLM5.3flash 复制队 3:5 MiniMax M3 复制队
-  - hy4 复制队 5:3 hy3 复制队
+  - hy4 复制队 3:5 deepseek v4pro 复制队
+- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → step5preview 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3 复制队
+  - GLM5.3flash 复制队 4:4 MIMO-v2.6-pro 复制队
+  - KIMI 2.8preview 复制队 4:4 step5preview 复制队
+  - deepseek v4pro 复制队 6:2 KIMI 3.1pro 复制队
+  - hy3 复制队 1:7 MiniMax M3 复制队
+  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → step5preview 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3flash 复制队
+  - deepseek v4pro 复制队 2:6 GLM5.3 复制队
+  - step5preview 复制队 1:7 MiniMax M3 复制队
+  - KIMI 2.8preview 复制队 1:7 MIMO-v2.6-pro 复制队
+  - hy4 复制队 3:5 KIMI 3.1pro 复制队
+  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → deepseek v4pro 复制队 → hy3 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 5:3 MiniMax M3 复制队
+  - GLM5.3 复制队 3:5 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 6:2 KIMI 3.1pro 复制队
+  - deepseek v4pro 复制队 5:3 hy3 复制队
+  - step5preview 复制队 1:7 hy4 复制队
   - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-  - KIMI 3.1pro 复制队 8:0 step5preview 复制队
 
 ### 第 6 届 · 种子 lab-2v2-2026-11-06:clone:all:s6
 
 - 第 1 轮 · 配对顺序 step5preview 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → hy4 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队 → deepseek v4.1flash 复制队 → hy3 复制队 → KIMI 3.1pro 复制队
   - step5preview 复制队 1:7 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 6:2 MiniMax M3 复制队
+  - KIMI 2.8preview 复制队 2:6 MiniMax M3 复制队
   - MIMO-v2.6-pro 复制队 4:4 deepseek v4pro 复制队
-  - hy4 复制队 1:7 GLM5.3 复制队
+  - hy4 复制队 2:6 GLM5.3 复制队
   - MiniMax M3.1flash 复制队 0:8 deepseek v4.1flash 复制队
-  - hy3 复制队 2:6 KIMI 3.1pro 复制队
-- 第 2 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - KIMI 3.1pro 复制队 3:5 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 5:3 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 6:2 hy4 复制队
-  - hy3 复制队 1:7 MiniMax M3 复制队
-  - MiniMax M3.1flash 复制队 0:8 step5preview 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → step5preview 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 2:6 deepseek v4pro 复制队
+  - hy3 复制队 1:7 KIMI 3.1pro 复制队
+- 第 2 轮 · 配对顺序 GLM5.3 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
+  - GLM5.3 复制队 5:3 MiniMax M3 复制队
+  - KIMI 3.1pro 复制队 1:7 deepseek v4.1flash 复制队
+  - GLM5.3flash 复制队 3:5 MIMO-v2.6-pro 复制队
+  - deepseek v4pro 复制队 3:5 KIMI 2.8preview 复制队
+  - hy4 复制队 6:2 hy3 复制队
+  - MiniMax M3.1flash 复制队 1:7 step5preview 复制队
+- 第 3 轮 · 配对顺序 GLM5.3 复制队 → deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → step5preview 复制队 → deepseek v4pro 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - GLM5.3 复制队 2:6 deepseek v4.1flash 复制队
+  - MIMO-v2.6-pro 复制队 4:4 KIMI 2.8preview 复制队
+  - KIMI 3.1pro 复制队 8:0 hy4 复制队
+  - GLM5.3flash 复制队 5:3 MiniMax M3 复制队
+  - step5preview 复制队 0:8 deepseek v4pro 复制队
+  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → hy3 复制队 → hy4 复制队 → MiniMax M3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 7:1 GLM5.3flash 复制队
   - KIMI 3.1pro 复制队 3:5 GLM5.3 复制队
-  - MiniMax M3 复制队 8:0 step5preview 复制队
-  - MIMO-v2.6-pro 复制队 6:2 hy4 复制队
-  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → step5preview 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 4:4 deepseek v4pro 复制队
-  - KIMI 2.8preview 复制队 4:4 GLM5.3 复制队
-  - MiniMax M3 复制队 5:3 GLM5.3flash 复制队
   - MIMO-v2.6-pro 复制队 8:0 step5preview 复制队
-  - hy3 复制队 3:5 hy4 复制队
-  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → hy3 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 MiniMax M3 复制队
-  - deepseek v4pro 复制队 5:3 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 5:3 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 5:3 KIMI 3.1pro 复制队
-  - step5preview 复制队 3:5 hy3 复制队
+  - deepseek v4pro 复制队 7:1 hy3 复制队
+  - KIMI 2.8preview 复制队 7:1 hy4 复制队
+  - MiniMax M3 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → hy3 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 5:3 MIMO-v2.6-pro 复制队
+  - GLM5.3 复制队 8:0 KIMI 2.8preview 复制队
+  - deepseek v4pro 复制队 6:2 GLM5.3flash 复制队
+  - MiniMax M3 复制队 7:1 KIMI 3.1pro 复制队
+  - step5preview 复制队 2:6 hy3 复制队
   - hy4 复制队 8:0 MiniMax M3.1flash 复制队
 
 ### 第 7 届 · 种子 lab-2v2-2026-11-06:clone:all:s7
 
 - 第 1 轮 · 配对顺序 deepseek v4.1flash 复制队 → hy3 复制队 → MiniMax M3 复制队 → hy4 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队
-  - deepseek v4.1flash 复制队 8:0 hy3 复制队
-  - MiniMax M3 复制队 4:4 hy4 复制队
-  - deepseek v4pro 复制队 6:2 KIMI 3.1pro 复制队
-  - step5preview 复制队 0:8 MIMO-v2.6-pro 复制队
+  - deepseek v4.1flash 复制队 6:2 hy3 复制队
+  - MiniMax M3 复制队 6:2 hy4 复制队
+  - deepseek v4pro 复制队 5:3 KIMI 3.1pro 复制队
+  - step5preview 复制队 1:7 MIMO-v2.6-pro 复制队
   - GLM5.3flash 复制队 8:0 MiniMax M3.1flash 复制队
   - KIMI 2.8preview 复制队 2:6 GLM5.3 复制队
-- 第 2 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
-  - MIMO-v2.6-pro 复制队 4:4 deepseek v4pro 复制队
-  - GLM5.3 复制队 2:6 deepseek v4.1flash 复制队
-  - GLM5.3flash 复制队 3:5 MiniMax M3 复制队
-  - hy4 复制队 5:3 KIMI 2.8preview 复制队
-  - step5preview 复制队 2:6 hy3 复制队
+- 第 2 轮 · 配对顺序 GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - GLM5.3flash 复制队 4:4 MIMO-v2.6-pro 复制队
+  - deepseek v4.1flash 复制队 4:4 GLM5.3 复制队
+  - MiniMax M3 复制队 3:5 deepseek v4pro 复制队
+  - hy4 复制队 4:4 KIMI 3.1pro 复制队
+  - step5preview 复制队 3:5 KIMI 2.8preview 复制队
+  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 3 轮 · 配对顺序 deepseek v4pro 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → hy3 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4pro 复制队 2:6 GLM5.3flash 复制队
+  - GLM5.3 复制队 5:3 MIMO-v2.6-pro 复制队
+  - deepseek v4.1flash 复制队 6:2 KIMI 2.8preview 复制队
+  - MiniMax M3 复制队 6:2 hy3 复制队
+  - hy4 复制队 6:2 step5preview 复制队
   - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → hy4 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 8:0 hy4 复制队
-  - deepseek v4pro 复制队 2:6 MiniMax M3 复制队
-  - MIMO-v2.6-pro 复制队 7:1 hy3 复制队
-  - KIMI 3.1pro 复制队 4:4 GLM5.3flash 复制队
-  - GLM5.3 复制队 8:0 step5preview 复制队
+- 第 4 轮 · 配对顺序 GLM5.3 复制队 → GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - GLM5.3 复制队 4:4 GLM5.3flash 复制队
+  - deepseek v4.1flash 复制队 5:3 deepseek v4pro 复制队
+  - MiniMax M3 复制队 8:0 KIMI 3.1pro 复制队
+  - hy4 复制队 1:7 MIMO-v2.6-pro 复制队
+  - hy3 复制队 5:3 KIMI 2.8preview 复制队
+  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → deepseek v4pro 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3flash 复制队
+  - GLM5.3 复制队 4:4 MiniMax M3 复制队
+  - MIMO-v2.6-pro 复制队 5:3 hy3 复制队
+  - deepseek v4pro 复制队 6:2 hy4 复制队
+  - KIMI 3.1pro 复制队 6:2 step5preview 复制队
   - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → hy4 复制队 → deepseek v4pro 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
-  - deepseek v4.1flash 复制队 3:5 MiniMax M3 复制队
-  - MIMO-v2.6-pro 复制队 4:4 GLM5.3 复制队
-  - KIMI 3.1pro 复制队 4:4 hy4 复制队
-  - GLM5.3flash 复制队 4:4 deepseek v4pro 复制队
-  - hy3 复制队 4:4 KIMI 2.8preview 复制队
-  - MiniMax M3.1flash 复制队 0:8 step5preview 复制队
-- 第 5 轮 · 配对顺序 MiniMax M3 复制队 → deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → deepseek v4pro 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - MiniMax M3 复制队 5:3 MIMO-v2.6-pro 复制队
-  - deepseek v4.1flash 复制队 8:0 GLM5.3flash 复制队
-  - GLM5.3 复制队 5:3 KIMI 3.1pro 复制队
-  - deepseek v4pro 复制队 8:0 hy4 复制队
-  - KIMI 2.8preview 复制队 8:0 step5preview 复制队
-  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
 
 ### 第 8 届 · 种子 lab-2v2-2026-11-06:clone:all:s8
 
 - 第 1 轮 · 配对顺序 MiniMax M3 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → hy3 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3.1flash 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队
   - MiniMax M3 复制队 7:1 hy4 复制队
-  - KIMI 3.1pro 复制队 4:4 GLM5.3flash 复制队
-  - hy3 复制队 4:4 MIMO-v2.6-pro 复制队
+  - KIMI 3.1pro 复制队 2:6 GLM5.3flash 复制队
+  - hy3 复制队 6:2 MIMO-v2.6-pro 复制队
   - MiniMax M3.1flash 复制队 0:8 GLM5.3 复制队
-  - deepseek v4pro 复制队 2:6 deepseek v4.1flash 复制队
-  - KIMI 2.8preview 复制队 3:5 step5preview 复制队
-- 第 2 轮 · 配对顺序 step5preview 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队
-  - step5preview 复制队 0:8 deepseek v4.1flash 复制队
-  - MiniMax M3 复制队 1:7 GLM5.3 复制队
+  - deepseek v4pro 复制队 4:4 deepseek v4.1flash 复制队
+  - KIMI 2.8preview 复制队 6:2 step5preview 复制队
+- 第 2 轮 · 配对顺序 hy3 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队
+  - hy3 复制队 1:7 MiniMax M3 复制队
+  - GLM5.3flash 复制队 1:7 GLM5.3 复制队
+  - KIMI 2.8preview 复制队 2:6 deepseek v4.1flash 复制队
+  - deepseek v4pro 复制队 7:1 KIMI 3.1pro 复制队
+  - MiniMax M3.1flash 复制队 0:8 step5preview 复制队
+  - hy4 复制队 1:7 MIMO-v2.6-pro 复制队
+- 第 3 轮 · 配对顺序 MiniMax M3 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队
+  - MiniMax M3 复制队 3:5 GLM5.3 复制队
+  - deepseek v4pro 复制队 4:4 GLM5.3flash 复制队
+  - deepseek v4.1flash 复制队 8:0 step5preview 复制队
+  - KIMI 2.8preview 复制队 4:4 MIMO-v2.6-pro 复制队
   - hy3 复制队 5:3 KIMI 3.1pro 复制队
-  - MIMO-v2.6-pro 复制队 4:4 GLM5.3flash 复制队
   - MiniMax M3.1flash 复制队 0:8 hy4 复制队
-  - KIMI 2.8preview 复制队 2:6 deepseek v4pro 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → hy3 复制队 → GLM5.3flash 复制队 → hy4 复制队 → step5preview 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 5:3 GLM5.3 复制队
-  - hy3 复制队 3:5 GLM5.3flash 复制队
-  - hy4 复制队 7:1 step5preview 复制队
-  - MIMO-v2.6-pro 复制队 6:2 deepseek v4pro 复制队
-  - MiniMax M3 复制队 5:3 KIMI 3.1pro 复制队
-  - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → hy3 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 5:3 MIMO-v2.6-pro 复制队
-  - hy4 复制队 0:8 GLM5.3 复制队
-  - GLM5.3flash 复制队 2:6 MiniMax M3 复制队
-  - hy3 复制队 2:6 deepseek v4pro 复制队
-  - KIMI 2.8preview 复制队 4:4 KIMI 3.1pro 复制队
-  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → hy4 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 MiniMax M3 复制队
-  - GLM5.3 复制队 7:1 deepseek v4pro 复制队
-  - hy4 复制队 2:6 GLM5.3flash 复制队
-  - step5preview 复制队 1:7 MIMO-v2.6-pro 复制队
-  - hy3 复制队 3:5 KIMI 2.8preview 复制队
-  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 GLM5.3 复制队 → deepseek v4.1flash 复制队 → hy3 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → KIMI 3.1pro 复制队
+  - GLM5.3 复制队 2:6 deepseek v4.1flash 复制队
+  - hy3 复制队 1:7 deepseek v4pro 复制队
+  - MiniMax M3 复制队 3:5 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 6:2 KIMI 2.8preview 复制队
+  - hy4 复制队 6:2 step5preview 复制队
+  - MiniMax M3.1flash 复制队 0:8 KIMI 3.1pro 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → hy3 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3flash 复制队
+  - deepseek v4pro 复制队 5:3 GLM5.3 复制队
+  - MIMO-v2.6-pro 复制队 8:0 step5preview 复制队
+  - MiniMax M3 复制队 7:1 KIMI 2.8preview 复制队
+  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
+  - hy4 复制队 1:7 KIMI 3.1pro 复制队
 
 ### 第 9 届 · 种子 lab-2v2-2026-11-06:clone:all:s9
 
 - 第 1 轮 · 配对顺序 hy4 复制队 → MiniMax M3 复制队 → deepseek v4.1flash 复制队 → MiniMax M3.1flash 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → step5preview 复制队 → GLM5.3 复制队 → hy3 复制队
-  - hy4 复制队 2:6 MiniMax M3 复制队
+  - hy4 复制队 1:7 MiniMax M3 复制队
   - deepseek v4.1flash 复制队 8:0 MiniMax M3.1flash 复制队
   - deepseek v4pro 复制队 3:5 GLM5.3flash 复制队
-  - KIMI 3.1pro 复制队 6:2 KIMI 2.8preview 复制队
-  - MIMO-v2.6-pro 复制队 7:1 step5preview 复制队
+  - KIMI 3.1pro 复制队 4:4 KIMI 2.8preview 复制队
+  - MIMO-v2.6-pro 复制队 8:0 step5preview 复制队
   - GLM5.3 复制队 6:2 hy3 复制队
-- 第 2 轮 · 配对顺序 KIMI 3.1pro 复制队 → GLM5.3 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队 → hy4 复制队 → hy3 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队
-  - KIMI 3.1pro 复制队 4:4 GLM5.3 复制队
-  - deepseek v4.1flash 复制队 7:1 MiniMax M3 复制队
-  - MIMO-v2.6-pro 复制队 4:4 GLM5.3flash 复制队
-  - MiniMax M3.1flash 复制队 0:8 step5preview 复制队
-  - hy4 复制队 4:4 hy3 复制队
-  - deepseek v4pro 复制队 8:0 KIMI 2.8preview 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → MiniMax M3 复制队 → hy3 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队 → KIMI 2.8preview 复制队
-  - deepseek v4.1flash 复制队 6:2 KIMI 3.1pro 复制队
-  - GLM5.3flash 复制队 5:3 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 4:4 deepseek v4pro 复制队
-  - step5preview 复制队 0:8 MiniMax M3 复制队
-  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy4 复制队 2:6 KIMI 2.8preview 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3flash 复制队
-  - MiniMax M3 复制队 5:3 MIMO-v2.6-pro 复制队
-  - hy3 复制队 2:6 deepseek v4pro 复制队
-  - GLM5.3 复制队 6:2 KIMI 2.8preview 复制队
-  - KIMI 3.1pro 复制队 7:1 step5preview 复制队
-  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → hy3 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 5:3 GLM5.3 复制队
-  - MiniMax M3 复制队 4:4 GLM5.3flash 复制队
-  - KIMI 3.1pro 复制队 3:5 deepseek v4pro 复制队
-  - MIMO-v2.6-pro 复制队 8:0 hy4 复制队
-  - hy3 复制队 6:2 step5preview 复制队
+- 第 2 轮 · 配对顺序 MiniMax M3 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → hy3 复制队 → step5preview 复制队 → deepseek v4pro 复制队
+  - MiniMax M3 复制队 1:7 deepseek v4.1flash 复制队
+  - GLM5.3 复制队 4:4 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 6:2 KIMI 3.1pro 复制队
   - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
+  - hy4 复制队 3:5 hy3 复制队
+  - step5preview 复制队 1:7 deepseek v4pro 复制队
+- 第 3 轮 · 配对顺序 GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → deepseek v4pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队
+  - GLM5.3flash 复制队 0:8 deepseek v4.1flash 复制队
+  - GLM5.3 复制队 6:2 KIMI 2.8preview 复制队
+  - MIMO-v2.6-pro 复制队 4:4 MiniMax M3 复制队
+  - deepseek v4pro 复制队 7:1 hy3 复制队
+  - KIMI 3.1pro 复制队 6:2 step5preview 复制队
+  - MiniMax M3.1flash 复制队 0:8 hy4 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → hy3 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
+  - MIMO-v2.6-pro 复制队 6:2 deepseek v4pro 复制队
+  - GLM5.3flash 复制队 3:5 MiniMax M3 复制队
+  - KIMI 3.1pro 复制队 4:4 hy3 复制队
+  - KIMI 2.8preview 复制队 7:1 hy4 复制队
+  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → deepseek v4pro 复制队 → GLM5.3flash 复制队 → hy3 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 MIMO-v2.6-pro 复制队
+  - GLM5.3 复制队 5:3 MiniMax M3 复制队
+  - KIMI 2.8preview 复制队 3:5 deepseek v4pro 复制队
+  - KIMI 3.1pro 复制队 7:1 hy4 复制队
+  - GLM5.3flash 复制队 8:0 step5preview 复制队
+  - hy3 复制队 8:0 MiniMax M3.1flash 复制队
 
 ### 第 10 届 · 种子 lab-2v2-2026-11-06:clone:all:s10
 
 - 第 1 轮 · 配对顺序 MiniMax M3.1flash 复制队 → GLM5.3flash 复制队 → hy4 复制队 → deepseek v4pro 复制队 → hy3 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队
   - MiniMax M3.1flash 复制队 0:8 GLM5.3flash 复制队
-  - hy4 复制队 2:6 deepseek v4pro 复制队
+  - hy4 复制队 1:7 deepseek v4pro 复制队
   - hy3 复制队 2:6 GLM5.3 复制队
-  - KIMI 3.1pro 复制队 0:8 deepseek v4.1flash 复制队
+  - KIMI 3.1pro 复制队 1:7 deepseek v4.1flash 复制队
   - MiniMax M3 复制队 8:0 step5preview 复制队
   - KIMI 2.8preview 复制队 3:5 MIMO-v2.6-pro 复制队
 - 第 2 轮 · 配对顺序 deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → step5preview 复制队
-  - deepseek v4pro 复制队 4:4 deepseek v4.1flash 复制队
-  - GLM5.3flash 复制队 3:5 MIMO-v2.6-pro 复制队
+  - deepseek v4pro 复制队 3:5 deepseek v4.1flash 复制队
+  - GLM5.3flash 复制队 5:3 MIMO-v2.6-pro 复制队
   - MiniMax M3 复制队 3:5 GLM5.3 复制队
   - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
   - hy3 复制队 5:3 KIMI 3.1pro 复制队
   - hy4 复制队 6:2 step5preview 复制队
-- 第 3 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → GLM5.3flash 复制队 → MiniMax M3 复制队 → hy3 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
-  - MIMO-v2.6-pro 复制队 5:3 GLM5.3 复制队
-  - deepseek v4pro 复制队 6:2 KIMI 2.8preview 复制队
-  - deepseek v4.1flash 复制队 8:0 hy4 复制队
-  - GLM5.3flash 复制队 2:6 MiniMax M3 复制队
-  - hy3 复制队 7:1 step5preview 复制队
-  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - MIMO-v2.6-pro 复制队 2:6 deepseek v4.1flash 复制队
-  - deepseek v4pro 复制队 8:0 hy3 复制队
-  - MiniMax M3 复制队 6:2 KIMI 3.1pro 复制队
-  - GLM5.3 复制队 8:0 hy4 复制队
-  - GLM5.3flash 复制队 3:5 KIMI 2.8preview 复制队
-  - step5preview 复制队 5:3 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4pro 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → hy3 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4pro 复制队 6:2 MiniMax M3 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 2:6 hy3 复制队
-  - KIMI 2.8preview 复制队 7:1 KIMI 3.1pro 复制队
-  - hy4 复制队 8:0 MiniMax M3.1flash 复制队
-  - GLM5.3flash 复制队 7:1 step5preview 复制队
+- 第 3 轮 · 配对顺序 GLM5.3 复制队 → GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → KIMI 2.8preview 复制队 → hy4 复制队 → deepseek v4pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - GLM5.3 复制队 4:4 GLM5.3flash 复制队
+  - deepseek v4.1flash 复制队 5:3 MIMO-v2.6-pro 复制队
+  - KIMI 2.8preview 复制队 5:3 hy4 复制队
+  - deepseek v4pro 复制队 5:3 hy3 复制队
+  - MiniMax M3 复制队 3:5 KIMI 3.1pro 复制队
+  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → hy3 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 6:2 GLM5.3 复制队
+  - GLM5.3flash 复制队 2:6 deepseek v4pro 复制队
+  - KIMI 2.8preview 复制队 6:2 step5preview 复制队
+  - KIMI 3.1pro 复制队 4:4 hy4 复制队
+  - hy3 复制队 4:4 MIMO-v2.6-pro 复制队
+  - MiniMax M3 复制队 8:0 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 7:1 KIMI 2.8preview 复制队
+  - deepseek v4pro 复制队 2:6 GLM5.3 复制队
+  - GLM5.3flash 复制队 4:4 MiniMax M3 复制队
+  - hy4 复制队 1:7 MIMO-v2.6-pro 复制队
+  - KIMI 3.1pro 复制队 6:2 step5preview 复制队
+  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
 
 ### 第 11 届 · 种子 lab-2v2-2026-11-06:clone:all:s11
 
 - 第 1 轮 · 配对顺序 KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → hy4 复制队 → GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → MiniMax M3 复制队
-  - KIMI 3.1pro 复制队 1:7 KIMI 2.8preview 复制队
-  - MIMO-v2.6-pro 复制队 4:4 GLM5.3 复制队
-  - hy4 复制队 1:7 GLM5.3flash 复制队
-  - deepseek v4.1flash 复制队 6:2 deepseek v4pro 复制队
-  - hy3 复制队 8:0 step5preview 复制队
+  - KIMI 3.1pro 复制队 2:6 KIMI 2.8preview 复制队
+  - MIMO-v2.6-pro 复制队 6:2 GLM5.3 复制队
+  - hy4 复制队 2:6 GLM5.3flash 复制队
+  - deepseek v4.1flash 复制队 5:3 deepseek v4pro 复制队
+  - hy3 复制队 7:1 step5preview 复制队
   - MiniMax M3.1flash 复制队 0:8 MiniMax M3 复制队
-- 第 2 轮 · 配对顺序 KIMI 2.8preview 复制队 → MiniMax M3 复制队 → hy3 复制队 → GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → KIMI 3.1pro 复制队 → hy4 复制队
-  - KIMI 2.8preview 复制队 4:4 MiniMax M3 复制队
-  - hy3 复制队 1:7 GLM5.3flash 复制队
-  - deepseek v4.1flash 复制队 6:2 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 3:5 deepseek v4pro 复制队
-  - step5preview 复制队 8:0 MiniMax M3.1flash 复制队
-  - KIMI 3.1pro 复制队 6:2 hy4 复制队
-- 第 3 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → hy3 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → step5preview 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 GLM5.3flash 复制队
-  - KIMI 2.8preview 复制队 5:3 hy3 复制队
-  - MiniMax M3 复制队 5:3 deepseek v4pro 复制队
-  - KIMI 3.1pro 复制队 2:6 step5preview 复制队
-  - MIMO-v2.6-pro 复制队 7:1 hy4 复制队
-  - GLM5.3 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → GLM5.3 复制队 → MIMO-v2.6-pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → deepseek v4pro 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队
-  - deepseek v4.1flash 复制队 6:2 KIMI 2.8preview 复制队
-  - MiniMax M3 复制队 3:5 GLM5.3flash 复制队
-  - step5preview 复制队 1:7 GLM5.3 复制队
-  - MIMO-v2.6-pro 复制队 5:3 hy3 复制队
-  - KIMI 3.1pro 复制队 3:5 deepseek v4pro 复制队
-  - MiniMax M3.1flash 复制队 0:8 hy4 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → step5preview 复制队 → deepseek v4pro 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 4:4 MIMO-v2.6-pro 复制队
-  - GLM5.3flash 复制队 6:2 KIMI 2.8preview 复制队
-  - MiniMax M3 复制队 5:3 GLM5.3 复制队
-  - step5preview 复制队 1:7 deepseek v4pro 复制队
-  - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
-  - hy4 复制队 4:4 hy3 复制队
+- 第 2 轮 · 配对顺序 GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → MiniMax M3 复制队 → hy3 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → step5preview 复制队 → deepseek v4pro 复制队 → MiniMax M3.1flash 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → hy4 复制队
+  - GLM5.3flash 复制队 2:6 KIMI 2.8preview 复制队
+  - MiniMax M3 复制队 7:1 hy3 复制队
+  - MIMO-v2.6-pro 复制队 2:6 deepseek v4.1flash 复制队
+  - step5preview 复制队 2:6 deepseek v4pro 复制队
+  - MiniMax M3.1flash 复制队 0:8 KIMI 3.1pro 复制队
+  - GLM5.3 复制队 4:4 hy4 复制队
+- 第 3 轮 · 配对顺序 MiniMax M3 复制队 → deepseek v4.1flash 复制队 → KIMI 2.8preview 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → deepseek v4pro 复制队 → hy3 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → hy4 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - MiniMax M3 复制队 1:7 deepseek v4.1flash 复制队
+  - KIMI 2.8preview 复制队 3:5 MIMO-v2.6-pro 复制队
+  - GLM5.3flash 复制队 2:6 deepseek v4pro 复制队
+  - hy3 复制队 3:5 KIMI 3.1pro 复制队
+  - GLM5.3 复制队 8:0 step5preview 复制队
+  - hy4 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → MIMO-v2.6-pro 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队 → hy4 复制队 → GLM5.3flash 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 5:3 KIMI 3.1pro 复制队
+  - deepseek v4pro 复制队 4:4 MiniMax M3 复制队
+  - MIMO-v2.6-pro 复制队 6:2 hy4 复制队
+  - KIMI 2.8preview 复制队 1:7 GLM5.3 复制队
+  - GLM5.3flash 复制队 7:1 hy3 复制队
+  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
+- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4pro 复制队 → MiniMax M3 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → GLM5.3flash 复制队 → KIMI 3.1pro 复制队 → hy4 复制队 → step5preview 复制队 → hy3 复制队 → MiniMax M3.1flash 复制队
+  - deepseek v4.1flash 复制队 3:5 GLM5.3 复制队
+  - MIMO-v2.6-pro 复制队 6:2 deepseek v4pro 复制队
+  - MiniMax M3 复制队 6:2 KIMI 2.8preview 复制队
+  - GLM5.3flash 复制队 4:4 KIMI 3.1pro 复制队
+  - hy4 复制队 7:1 step5preview 复制队
+  - hy3 复制队 7:1 MiniMax M3.1flash 复制队
 
 ### 第 12 届 · 种子 lab-2v2-2026-11-06:clone:all:s12
 
 - 第 1 轮 · 配对顺序 GLM5.3flash 复制队 → step5preview 复制队 → deepseek v4pro 复制队 → MiniMax M3.1flash 复制队 → deepseek v4.1flash 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → MIMO-v2.6-pro 复制队 → hy4 复制队 → hy3 复制队 → MiniMax M3 复制队
-  - GLM5.3flash 复制队 5:3 step5preview 复制队
+  - GLM5.3flash 复制队 7:1 step5preview 复制队
   - deepseek v4pro 复制队 8:0 MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 GLM5.3 复制队
-  - KIMI 2.8preview 复制队 4:4 KIMI 3.1pro 复制队
-  - MIMO-v2.6-pro 复制队 5:3 hy4 复制队
-  - hy3 复制队 1:7 MiniMax M3 复制队
-- 第 2 轮 · 配对顺序 deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → KIMI 2.8preview 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → step5preview 复制队 → hy3 复制队
-  - deepseek v4pro 复制队 6:2 MIMO-v2.6-pro 复制队
-  - deepseek v4.1flash 复制队 7:1 MiniMax M3 复制队
-  - GLM5.3flash 复制队 5:3 KIMI 2.8preview 复制队
-  - KIMI 3.1pro 复制队 4:4 GLM5.3 复制队
-  - MiniMax M3.1flash 复制队 0:8 hy4 复制队
-  - step5preview 复制队 3:5 hy3 复制队
-- 第 3 轮 · 配对顺序 GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → hy3 复制队 → MiniMax M3 复制队 → hy4 复制队 → MIMO-v2.6-pro 复制队 → KIMI 3.1pro 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队 → MiniMax M3.1flash 复制队 → step5preview 复制队
-  - GLM5.3flash 复制队 1:7 deepseek v4.1flash 复制队
-  - deepseek v4pro 复制队 5:3 hy3 复制队
-  - MiniMax M3 复制队 5:3 hy4 复制队
-  - MIMO-v2.6-pro 复制队 6:2 KIMI 3.1pro 复制队
-  - KIMI 2.8preview 复制队 2:6 GLM5.3 复制队
-  - MiniMax M3.1flash 复制队 0:8 step5preview 复制队
-- 第 4 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → GLM5.3 复制队 → KIMI 3.1pro 复制队 → hy3 复制队 → hy4 复制队 → step5preview 复制队 → KIMI 2.8preview 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 7:1 deepseek v4pro 复制队
-  - MIMO-v2.6-pro 复制队 5:3 MiniMax M3 复制队
-  - GLM5.3flash 复制队 3:5 GLM5.3 复制队
-  - KIMI 3.1pro 复制队 3:5 hy3 复制队
-  - hy4 复制队 6:2 step5preview 复制队
-  - KIMI 2.8preview 复制队 8:0 MiniMax M3.1flash 复制队
-- 第 5 轮 · 配对顺序 deepseek v4.1flash 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → GLM5.3 复制队 → hy3 复制队 → MiniMax M3 复制队 → GLM5.3flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队
-  - deepseek v4.1flash 复制队 6:2 MIMO-v2.6-pro 复制队
-  - deepseek v4pro 复制队 4:4 GLM5.3 复制队
-  - hy3 复制队 1:7 GLM5.3flash 复制队
-  - MiniMax M3 复制队 8:0 step5preview 复制队
-  - hy4 复制队 6:2 KIMI 2.8preview 复制队
+  - deepseek v4.1flash 复制队 5:3 GLM5.3 复制队
+  - KIMI 2.8preview 复制队 3:5 KIMI 3.1pro 复制队
+  - MIMO-v2.6-pro 复制队 7:1 hy4 复制队
+  - hy3 复制队 2:6 MiniMax M3 复制队
+- 第 2 轮 · 配对顺序 MiniMax M3 复制队 → deepseek v4pro 复制队 → MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → KIMI 3.1pro 复制队 → GLM5.3flash 复制队 → hy4 复制队 → KIMI 2.8preview 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → hy3 复制队 → GLM5.3 复制队
+  - MiniMax M3 复制队 5:3 deepseek v4pro 复制队
+  - MIMO-v2.6-pro 复制队 5:3 deepseek v4.1flash 复制队
+  - KIMI 3.1pro 复制队 1:7 GLM5.3flash 复制队
+  - hy4 复制队 2:6 KIMI 2.8preview 复制队
+  - step5preview 复制队 7:1 MiniMax M3.1flash 复制队
+  - hy3 复制队 2:6 GLM5.3 复制队
+- 第 3 轮 · 配对顺序 GLM5.3flash 复制队 → MIMO-v2.6-pro 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → GLM5.3 复制队 → deepseek v4pro 复制队 → step5preview 复制队 → deepseek v4.1flash 复制队 → KIMI 3.1pro 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队 → hy3 复制队
+  - GLM5.3flash 复制队 3:5 MIMO-v2.6-pro 复制队
+  - MiniMax M3 复制队 3:5 KIMI 2.8preview 复制队
+  - GLM5.3 复制队 6:2 deepseek v4pro 复制队
+  - step5preview 复制队 0:8 deepseek v4.1flash 复制队
   - KIMI 3.1pro 复制队 8:0 MiniMax M3.1flash 复制队
+  - hy4 复制队 2:6 hy3 复制队
+- 第 4 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → GLM5.3flash 复制队 → deepseek v4.1flash 复制队 → MiniMax M3 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → hy3 复制队 → step5preview 复制队 → MiniMax M3.1flash 复制队 → hy4 复制队
+  - MIMO-v2.6-pro 复制队 6:2 MiniMax M3 复制队
+  - GLM5.3flash 复制队 1:7 deepseek v4.1flash 复制队
+  - KIMI 3.1pro 复制队 4:4 GLM5.3 复制队
+  - KIMI 2.8preview 复制队 3:5 deepseek v4pro 复制队
+  - hy3 复制队 7:1 step5preview 复制队
+  - MiniMax M3.1flash 复制队 0:8 hy4 复制队
+- 第 5 轮 · 配对顺序 MIMO-v2.6-pro 复制队 → deepseek v4.1flash 复制队 → KIMI 3.1pro 复制队 → GLM5.3 复制队 → MiniMax M3 复制队 → KIMI 2.8preview 复制队 → deepseek v4pro 复制队 → hy3 复制队 → GLM5.3flash 复制队 → step5preview 复制队 → hy4 复制队 → MiniMax M3.1flash 复制队
+  - MIMO-v2.6-pro 复制队 6:2 KIMI 3.1pro 复制队
+  - deepseek v4.1flash 复制队 1:7 MiniMax M3 复制队
+  - GLM5.3 复制队 6:2 KIMI 2.8preview 复制队
+  - deepseek v4pro 复制队 6:2 hy3 复制队
+  - GLM5.3flash 复制队 8:0 MiniMax M3.1flash 复制队
+  - step5preview 复制队 2:6 hy4 复制队
 
 ## 逐局明细与复现
 

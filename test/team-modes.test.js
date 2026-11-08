@@ -4,7 +4,76 @@ import { createGame } from '../src/engine/engine.js';
 import { canAttackPlayer, canTargetBase, teamOf, isEmperor, oppositeSeat, admiralSeats, MODES, TEAM_SPECS } from '../src/engine/modes.js';
 
 const six = () => Array.from({ length: 6 }, (_, i) => ({ name: `P${i + 1}`, script: 'tactical' }));
+const four = () => Array.from({ length: 4 }, (_, i) => ({ name: `P${i + 1}`, script: 'tactical' }));
 const make = mode => createGame({ mode, seed: `${mode}-test`, players: six() });
+const make4 = mode => createGame({ mode, seed: `${mode}-test`, players: four() });
+
+test('双头龙：先手队全员 3 张、后手队全员 5 张', () => {
+  const g = make4('team2v2');
+  assert.deepEqual(g.state.teams.map(t => t.players), [[0, 2], [1, 3]]);
+  assert.deepEqual(g.state.players.map(p => p.hand.length), [3, 5, 3, 5]);
+});
+
+test('团队模式整队轮流：队友连续行动完才换另一队', () => {
+  const g = make('hydra3');
+  const order = [g.state.activePlayer];
+  for (let i = 0; i < 6; i++) { g.endTurn(); order.push(g.state.activePlayer); }
+  assert.deepEqual(order, [0, 2, 4, 1, 3, 5, 0]);
+
+  const h = make4('team2v2');
+  const order4 = [h.state.activePlayer];
+  for (let i = 0; i < 4; i++) { h.endTurn(); order4.push(h.state.activePlayer); }
+  assert.deepEqual(order4, [0, 2, 1, 3, 0]);
+});
+
+test('团队模式：队内基地伤害累计可合击，换队后清零', () => {
+  const g = make('hydra3');
+  const s = g.state;
+  const base = g.makeCard('battleStation', 1);
+  s.players[1].inPlay.push(base);
+  s.activePlayer = 0; s.players[0].combat = 3;
+  const first = g.legalActions().find(a => a.type === 'attack' && a.targetType === 'base' && a.targetId === base);
+  assert.equal(first.amount, 3);
+  g.applyAction(first);
+  assert.equal(s.damage[base], 3);
+
+  g.endTurn();
+  assert.equal(s.activePlayer, 2, '队内应直接轮到队友');
+  assert.equal(s.damage[base], 3, '队友行动时伤害必须保留');
+  s.players[2].combat = 2;
+  const second = g.legalActions().find(a => a.type === 'attack' && a.targetType === 'base' && a.targetId === base);
+  assert.ok(second, '队友应能接着打同一座基地');
+  assert.equal(second.amount, 2, '只需补掉剩余 2 点防御');
+  g.applyAction(second);
+  assert.equal(s.players[1].inPlay.includes(base), false, '合并战斗应拆掉基地');
+
+  // 换一座基地验证「队末换队时才清零」
+  const other = g.makeCard('battleStation', 1);
+  s.players[1].inPlay.push(other);
+  s.players[2].combat = 2;
+  const third = g.legalActions().find(a => a.type === 'attack' && a.targetType === 'base' && a.targetId === other);
+  g.applyAction(third);
+  assert.equal(s.damage[other], 2);
+  g.endTurn();
+  assert.equal(s.activePlayer, 4, '仍在同一队');
+  assert.equal(s.damage[other], 2, '同队内伤害继续保留');
+  g.endTurn();
+  assert.equal(s.activePlayer, 1, '换到另一队');
+  assert.equal(s.damage[other], undefined, '换队后基地伤害清零');
+});
+
+test('团队模式：队末才弃手补牌，队内队友保留手牌', () => {
+  const g = make('hydra3');
+  const s = g.state;
+  const before = s.players[0].hand.length;
+  assert.equal(before, 3, '先手队开局 3 张');
+  g.endTurn();
+  assert.equal(s.players[0].hand.length, before, '队内换人不应弃手补牌');
+  g.endTurn();
+  g.endTurn();
+  assert.equal(s.activePlayer, 1, '换到另一队');
+  for (const id of [0, 2, 4]) assert.equal(s.players[id].hand.length, 5, `队友 ${id} 队末应补到 5 张`);
+});
 
 test('三头龙：6 人两队各 3 人，共享 100 权威', () => {
   assert.equal(MODES.hydra3.min, 6);

@@ -33,7 +33,7 @@ const seed = loaded[0].data.config.masterSeed;
 const totalGames = loaded.reduce((sum, run) => sum + run.data.audit.playedGames, 0);
 lines.push(`> 四场正式赛 · 主种子 \`${seed}\` · 合计 ${totalGames} 局 · 12 届 × 完整单循环（3 轮 × 2 场）× BO6`);
 lines.push('');
-lines.push('> 规则修正说明：2026-11-08 修复大将战的提督对位——旧实现用「座位 +1」配对，在三种大将轮换下会各有一名提督的对位落到敌方大将身上，从而绕过「先解决对面提督」的限制。两场大将战已按修正后的规则用同一主种子重跑，本文件数字为修正后的结果。');
+lines.push('> 规则修正（2026-11-08）：① 大将战提督对位改为「两队提督按队内座位序配对」，旧实现用「座位 +1」会让一名提督越过对位直击敌方大将；② 团队模式（Hydra / Emperor）改为官方「整队轮流」——同队队友连续行动，弃手、补牌与基地伤害在队伍回合结束时结算。四场均已按修正后的规则用同一主种子重跑，本文件数字为修正后的结果。');
 lines.push('');
 
 const tops = loaded.map(run => {

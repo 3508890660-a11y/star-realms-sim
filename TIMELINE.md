@@ -1,6 +1,6 @@
 # 星域奇航 AI 模拟器 · 项目时间线
 
-> 本文为 **2026-11-08「扩展牌包 + 3V3 模式」更新及其后的大将战对位修正**而写，以最后一次修正为终点回溯全项目（初版写于 2026-11-07 观战台 UI 更新）。
+> 本文为 **2026-11-08「扩展牌包 + 3V3 模式」及其后的两轮规则修正**而写，以最后一次修正为终点回溯全项目（初版写于 2026-11-07 观战台 UI 更新）。
 > 时间口径：git 提交时间与文件 mtime 为 UTC+8；报告 `generatedAt` 原为 UTC，下表已换算为 UTC+8。
 > 只记录可核验事实（提交哈希、落盘文件、报告字段、测试计数、截图），没有留痕的时刻标为「同日」，不推断、不补写。
 
@@ -19,7 +19,8 @@
 | 7 | 2026-11-06 22:56 | 实验成果推送 GitHub | `d4510f9` |
 | 8 | 2026-11-07 10:58–11:02 | 观战台 2V2 实验室标签页 + 本时间线文档初版 | `public/*`、`src/server/server.js`、`test/lab-ui.test.js`、`TIMELINE.md` |
 | 9 | 2026-11-08 20:19–20:45 | 扩展牌包（Frontiers + 两个危机小扩）、三头龙/大将战 3V3、四场正式赛 | `src/engine/expansions-extra.js`、`src/mode-tourney-cli.js`、`reply/star-realms-{hydra3,emperor}-*.json`、`reply/star-realms-3v3-summary.md` |
-| 10 | **2026-11-08 20:58–21:08** | **大将战提督对位修正 + 两场重跑 + 看板与文档同步** | `src/engine/modes.js`、`test/team-modes.test.js`、`reply/star-realms-emperor-*.json`、`reply/star-realms-3v3-summary.md` |
+| 10 | 2026-11-08 20:58–21:08 | 大将战提督对位修正 + 两场重跑 + 看板与文档同步 | `src/engine/modes.js`、`test/team-modes.test.js`、`reply/star-realms-emperor-*.json`、`reply/star-realms-3v3-summary.md` |
+| 11 | **2026-11-08 21:14–21:37** | **多头龙修正：整队轮流 + 2V2 起手牌，九份团队模式报告重跑** | `src/engine/engine.js`、`src/engine/modes.js`、`reply/star-realms-{2v2-*,team-swiss-report2,hydra3-*,emperor-*}.json` |
 
 ---
 
@@ -147,7 +148,7 @@
 
 ---
 
-### 10) 2026-11-08 20:58–21:08 · 大将战提督对位修正（本次）
+### 10) 2026-11-08 20:58–21:08 · 大将战提督对位修正（数字已被阶段 11 覆盖）
 
 **触发**：用户质疑「皇帝可以打任何人，将领在对方将领解决前不能进攻敌方皇帝」，要求核对大将战实现逻辑。
 
@@ -180,6 +181,46 @@
 
 ---
 
+### 11) 2026-11-08 21:14–21:37 · 多头龙修正：整队轮流 + 2V2 起手牌（本次）
+
+**触发**：用户追问「多头龙是否也有问题」。对照官方 Two-Headed / Three-Headed Hydra 后确认两处：2v2 起手牌是 `[3,4,5,5]`（官方为 `[3,3,5,5]`）；回合结构是逐座位交替而非官方「整队轮流」，导致队友无法合击同一座基地、转移的资源要等下一轮才到账。
+
+| 时间 | 动作 | 文件 |
+|---|---|---|
+| 21:14 | 实测三项：2v2 起手 `3/4/5/5`；0 号把基地打到剩 3、回合结束后伤害清零，队友只能从头打；转移的 3 贸易要等队友下个回合 |
+| 21:19:14 | `modes.nextTeamTurn()`：同队按座位升序连续行动后再换队 | `src/engine/modes.js` |
+| 21:19:53 | `endTurn()` 改为队末结算（队内只清个人资源与标记，不弃手/不补牌/不清伤害）；起手牌按队发放，覆盖 `team2v2` | `src/engine/engine.js` |
+| 21:20:23 | 2v2 转移测试改为「同队回合内到账」 | `test/expansions.test.js` |
+| 21:20:50 | 新增 4 项团队回合测试（起手牌、整队顺序、跨队友合击、队末补牌） | `test/team-modes.test.js` |
+| 21:24:51 | 三头龙 · 核心重跑（432 局） | `reply/star-realms-hydra3-core.json` |
+| 21:25:26 | 大将战 · 核心重跑（432 局） | `reply/star-realms-emperor-core.json` |
+| 21:26:51 | 三头龙 · 全扩重跑（432 局） | `reply/star-realms-hydra3-all.json` |
+| 21:27:21 | 实验 B · 核心重跑（1440 局） | `reply/star-realms-2v2-random-core.json` |
+| 21:27:26 | 大将战 · 全扩重跑（432 局） | `reply/star-realms-emperor-all.json` |
+| 21:28:55 | 实验 B · 全扩重跑（1440 局） | `reply/star-realms-2v2-random-all.json` |
+| 21:31:40 | 实验 A · 核心重跑（2880 局） | `reply/star-realms-2v2-clone-core.json` |
+| 21:36:06 | 实验 A · 全扩重跑（2880 局） | `reply/star-realms-2v2-clone-all.json` |
+| 21:36:15 | 2V2 组队赛重跑（1440 局），报告同步到 `reply/` | `reply/star-realms-team-swiss-report2.json` |
+| 21:36:48 | 两份汇总重生成（含规则修正说明） | `reply/star-realms-2v2-lab-summary.md`、`reply/star-realms-3v3-summary.md` |
+
+**结果变化**
+
+| 项目 | 修正前 | 修正后 |
+|---|---|---|
+| 2V2 组队赛冠军 | DeepSeek 联队 86.04%（413/480）、11 冠 | DeepSeek 联队 83.33%（400/480）、9 冠 |
+| 2V2 组队赛前位胜率 | 54.03% | 53.06% |
+| 2V2 实验室 A 核心 / 全扩 | 88.96% / 79.79% | 87.50% / 73.12% |
+| 2V2 实验室 B 核心 / 全扩 β | 1.3108 / 0.9083 | 1.2135 / 0.832 |
+| 3V3 前位胜率 | 41%–44% | 54%–56% |
+| 三头龙 β（核心 / 全扩） | 1.3452 / 0.9031 | 1.1299 / 0.7378 |
+| 大将战核心 β 第一 | deepseek v4.1flash | MiniMax M3 |
+
+**验收**：全量测试 **93/93**；九场账目全部守恒（局数、每人参与局数、零重赛、零重试、座位配平、大将角色配平）；前位胜率抬升的原因是整队轮流下先手队三人连续行动、可合击同一目标，3 张起手只部分对冲。
+
+**仍未改**：大将战 1 贸易移牌允许任意队友，官方限「相邻队友」。
+
+---
+
 ## 三、证据索引
 
 | 事实 | 证据 |
@@ -192,6 +233,7 @@
 | 3V3 交叉结论与显著性 | `reply/star-realms-3v3-summary.md` |
 | 提督对位修正 | `src/engine/modes.js` 的 `admiralSeats` / `oppositeSeat`；`test/team-modes.test.js` 的两项对位测试 |
 | 修正后大将战结果 | `reply/star-realms-emperor-*.json` 的 `generatedAt`（`13:01:45Z` / `13:03:34Z`，即 21:01 / 21:03）与汇总里的「规则修正说明」 |
+| 整队轮流与 2v2 起手牌 | `test/team-modes.test.js` 的 4 项团队回合测试；九份报告 `generatedAt` 落在 21:24–21:36 |
 | 扩展卡牌覆盖率与未实现清单 | `tools/build-extra-expansions.mjs` 生成时的输出；`src/engine/expansions-extra.js` 的 55 种定义 |
 | 交叉结论 | `reply/star-realms-2v2-lab-summary.md` |
 | 视频与素材口径 | `README.md` 第 13 节；`video/storyboard.json` |
@@ -206,5 +248,5 @@
 - **结论适用范围**：所有胜率、β、CI 与 z 只适用于本赛制、本牌包与这组种子；2v2 胜负由队伍共享，个人指标是统计估计而非直接测量。
 - **仓库边界**：`video/` 始终被 `.gitignore` 排除，两次推送后远端 `contents/video` 均为 404；PAT 仅临时注入推送命令，未写入 `.git/config`，仍建议用后撤销。
 - **本次 UI 的边界**：只读展示 `reply/` 已落盘报告；不提供「从界面启动新实验」，复现仍走 `src/team-lab-cli.js` 或 `src/mode-tourney-cli.js` 命令行。
-- **3V3 的已知规则偏差**：大将战的回合顺序仍是逐座位交替（官方为两队各自连续行动），1 贸易移牌允许任意队友（官方限「相邻队友」）；修正的只是提督攻击/指定目标的对位。详见 `README.md` 16.6。
+- **团队模式的剩余偏差**：回合结构与 2V2 起手牌已在阶段 11 修正；大将战的 1 贸易移牌仍允许任意队友（官方限「相邻队友」）。详见 `README.md` 16.7。
 - **3V3 结论强度**：单场 432 局，四场 β 的 |z| 最大 1.872，均未达 95% 显著；「deepseek v4.1flash 四场第一」是跨场一致性，不是已证明的排序。前位队胜率低于 50% 是引擎起手张数规则所致，已在 README 第 16 节说明。
