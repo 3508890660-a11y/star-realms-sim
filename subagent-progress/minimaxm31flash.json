@@ -1,8 +1,9 @@
 {
   "id": "minimaxm31flash",
+  "round": "program-update-20261108",
   "status": "completed",
   "progress": 100,
   "phase": "已完成",
-  "note": "自选策略：破垒夺权；脚本与设计说明已落盘",
-  "updatedAt": "2026-11-05T14:20:02.299Z"
+  "note": "破垒夺权（Breach the Wall, Seize Authority）；out/minimaxm31flash.js 与 out/minimaxm31flash.md 已落盘，两项校验均通过",
+  "updatedAt": "2026-11-08T15:16:25.323Z"
 }

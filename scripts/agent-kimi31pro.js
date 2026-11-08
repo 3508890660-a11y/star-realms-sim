@@ -1,9 +1,10 @@
 // 策略名称：压缩脉冲
-// 选择理由（一句话）：用前期贸易获取高效战斗与抽牌，随后压缩低效牌并连续压低对手权威。
+// 选择理由：用前期贸易获取高效战斗与抽牌，随后压缩低效牌并连续压低对手权威。
+// 本轮更新：按程序更新第 1–6 节适配七种模式、团队整队回合、六种牌包及新动作字段。
 
 export const meta = {
   name: 'KIMI 3.1pro · 压缩脉冲',
-  description: 'kimi-k3.1-pro 自选策略「压缩脉冲」：前期保贸易节奏，中期精简牌库，以高效战斗、抽牌和同盟形成持续斩杀压力。'
+  description: 'kimi-k3.1-pro｜压缩脉冲｜前期保贸易节奏，中期精简牌库，以高效战斗、抽牌和同盟形成持续斩杀压力。'
 };
 
 const CHOICES = {
@@ -42,10 +43,32 @@ function turnOf(view, context) {
   return Number(context && context.turn) || Number(view && view.turn) || 1;
 }
 
+function isSharedTeam(view) {
+  return !!view && (view.mode === 'team2v2' || view.mode === 'hydra3');
+}
+
+function isTeamLike(view) {
+  return isSharedTeam(view) || (!!view && view.mode === 'emperor');
+}
+
 function maxMatches(text, regex) {
   let best = 0;
   for (const match of String(text || '').matchAll(regex)) best = Math.max(best, Number(match[1]) || 0);
   return best;
+}
+
+function textSections(text) {
+  return String(text || '').split(/[。\n]+/).map(part => part.trim()).filter(Boolean);
+}
+
+function labeledSection(text, label) {
+  const prefix = `${label}：`;
+  const section = textSections(text).find(part => part.startsWith(prefix));
+  return section ? section.slice(prefix.length) : '';
+}
+
+function primaryText(text) {
+  return textSections(text).find(part => !/^(?:前哨|同盟|双同盟|销毁|可选)(?:：|$)/.test(part)) || '';
 }
 
 function effect(text) {
@@ -59,7 +82,10 @@ function effect(text) {
 }
 
 function mainEffect(view, uid) {
-  return effect(String(card(view, uid).text || '').split('。')[0]);
+  const text = primaryText(card(view, uid).text);
+  const result = effect(text);
+  if (/弃.*(?:再抽|然后抽)/.test(text)) result.draw = 0;
+  return result;
 }
 
 function enemies(view, playerId) {
@@ -74,8 +100,9 @@ function authorityWeight(view, playerId) {
   const me = self(view, playerId);
   const foes = enemies(view, playerId);
   const lowest = foes.length ? Math.min(...foes.map(player => player.authority || 50)) : 50;
-  if ((me.authority || 0) <= 12) return 1.15;
-  if ((me.authority || 0) <= 24) return 0.75;
+  const isEmperor = view.mode === 'emperor' && (view.emperors || []).includes(playerId);
+  if ((me.authority || 0) <= 12) return isEmperor ? 1.35 : 1.15;
+  if ((me.authority || 0) <= 24) return isEmperor ? 0.9 : 0.75;
   return lowest <= 14 ? 0.2 : 0.42;
 }
 
@@ -92,27 +119,38 @@ function factionCount(view, playerId, faction, memory) {
   return Math.min(5, count);
 }
 
+function openingHandSize(view, playerId, memory) {
+  const current = Number(self(view, playerId).handCount) || 5;
+  if (memory && memory.openingHandSize === undefined) memory.openingHandSize = current;
+  return Number(memory && memory.openingHandSize) || current;
+}
+
 function cardQuality(view, uid, playerId, context, memory) {
   const c = card(view, uid);
   if (!c.id) return 0;
   const turn = turnOf(view, context);
-  const tradeWeight = turn <= 7 ? 1.65 : turn <= 14 ? 1.25 : 0.95;
+  let tradeWeight = turn <= 7 ? 1.65 : turn <= 14 ? 1.25 : 0.95;
+  if (isTeamLike(view) && turn <= 3 && openingHandSize(view, playerId, memory) <= 3) tradeWeight += 0.2;
   const combatWeight = turn <= 5 ? 2.15 : 2.5;
   const text = c.text || '';
   const primary = mainEffect(view, uid);
   let value = primary.combat * combatWeight + primary.trade * tradeWeight +
     primary.authority * authorityWeight(view, playerId) + primary.draw * 5;
 
-  const ally = (text.match(/同盟：([^。]+)/) || [])[1] || '';
-  const allyEffect = effect(ally);
+  const allyEffect = effect(labeledSection(text, '同盟'));
   const synergy = 0.2 + Math.min(0.8, factionCount(view, playerId, c.faction, memory) * 0.16);
   value += (allyEffect.combat * combatWeight + allyEffect.trade * tradeWeight +
     allyEffect.authority * authorityWeight(view, playerId) + allyEffect.draw * 4.5) * synergy;
 
+  const doubleEffect = effect(labeledSection(text, '双同盟'));
+  const doubleSynergy = synergy * 0.55;
+  value += (doubleEffect.combat * combatWeight + doubleEffect.trade * tradeWeight +
+    doubleEffect.authority * authorityWeight(view, playerId) + doubleEffect.draw * 4.5) * doubleSynergy;
+
   if (c.type === 'base') {
     value = value * 1.22 + (Number(c.defense) || 0) * 0.42 + (c.outpost ? 2.8 : 0);
   }
-  if (/销毁手牌|销毁弃牌堆/.test(text)) value += 4.2;
+  if (/销毁手牌|销毁弃牌堆|可选：销毁|销毁\s*\d+\s*张牌/.test(text)) value += 4.2;
   if (/目标对手弃/.test(text)) value += 1.6;
   if (/免费获得/.test(text)) value += 4.5 * Math.max(0.55, synergy);
   if (/复制/.test(text)) value += 3;
@@ -158,7 +196,7 @@ function bestPurchase(view, playerId, trade, context, memory, above = -1) {
   for (const uid of (view && view.tradeRow) || []) {
     const c = card(view, uid);
     const cost = Number(c.cost);
-    if (!c.id || !Number.isFinite(cost) || cost > trade || cost <= above) continue;
+    if (!c.id || c.cost === null || c.cost === undefined || !Number.isFinite(cost) || cost > trade || cost <= above) continue;
     const quality = cardQuality(view, uid, playerId, context, memory);
     if (!best || quality > best.quality) best = { uid, cost, quality };
   }
@@ -172,25 +210,33 @@ function unlockBonus(view, playerId, extraTrade, context, memory) {
   return unlocked ? 9 + Math.max(0, unlocked.quality) * 1.4 : 0;
 }
 
-function hasOutpost(view, player) {
-  return (player.inPlay || []).some(uid => card(view, uid).outpost);
+function firstBloodWinner(view, targetId) {
+  const players = view.players || [];
+  if (!players.length) return null;
+  let index = targetId;
+  for (let count = 0; count < players.length; count++) {
+    index = (index - 1 + players.length) % players.length;
+    if (!players[index].eliminated) return index;
+  }
+  return null;
 }
 
-function canRoughlyHit(view, playerId, target) {
-  if (hasOutpost(view, target)) return false;
-  if (view.mode !== 'team2v2') return true;
-  const team = (view.teams || []).find(item => item.id === target.team);
-  return !(team && team.players.some(id => hasOutpost(view, view.players[id])));
+function lethalAllowed(view, playerId, targetId) {
+  return view.mode !== 'firstBlood' || firstBloodWinner(view, targetId) === playerId;
 }
 
-function choiceValue(view, action, playerId, context, memory) {
+function choiceValue(view, action, playerId, context, memory, legalActions) {
   const c = card(view, action.cardId);
   const me = self(view, playerId);
   if (c.id === 'recyclingStation' && action.choice === 1) {
     return (action.targets || []).reduce((sum, uid) => sum + cycleGain(view, uid, playerId, context), 0) * 2;
   }
-  const choice = (CHOICES[c.id] || [])[action.choice];
-  if (!choice) return 0;
+  let choice = (CHOICES[c.id] || [])[action.choice];
+  if (!choice) {
+    const source = primaryText(c.text).replace(/^选择[：:]/, '');
+    const option = source.split(/\s*或\s*|；/)[action.choice] || '';
+    choice = effect(option);
+  }
   if (choice.drawBlobs) {
     const count = (me.playedThisTurn || []).filter(uid => {
       const played = card(view, uid);
@@ -204,9 +250,15 @@ function choiceValue(view, action, playerId, context, memory) {
   let value = (choice.combat || 0) * 2.5 + (choice.trade || 0) * 1.5 +
     (choice.authority || 0) * authorityWeight(view, playerId);
   value += unlockBonus(view, playerId, choice.trade || 0, context, memory);
-  if (choice.combat && enemies(view, playerId).some(target =>
-    canRoughlyHit(view, playerId, target) && target.authority <= (me.combat || 0) + choice.combat
-  )) value += 60;
+  if (choice.combat) {
+    const projected = (me.combat || 0) + choice.combat;
+    const lethal = (legalActions || []).some(item => {
+      if (item.type !== 'attack' || item.targetType !== 'player') return false;
+      const target = (view.players || [])[item.targetId] || {};
+      return target.authority <= projected && lethalAllowed(view, playerId, item.targetId);
+    });
+    if (lethal) value += 60;
+  }
   return value;
 }
 
@@ -221,21 +273,25 @@ function baseThreat(view, uid, playerId, context, memory) {
   return Math.max(1, threat);
 }
 
-function playScore(view, action, playerId, context, memory) {
+function playScore(view, action, playerId, context, memory, legalActions) {
   const c = card(view, action.cardId);
   const e = mainEffect(view, action.cardId);
   let score = 500 + e.draw * 12 + e.combat * 0.5 + e.trade * 0.35;
   score += unlockBonus(view, playerId, e.trade, context, memory);
-  if (action.choice !== undefined) score += choiceValue(view, action, playerId, context, memory);
+  if (action.choice !== undefined) score += choiceValue(view, action, playerId, context, memory, legalActions);
   if (action.copy) score += 8 + cardQuality(view, action.copy, playerId, context, memory) * 1.4;
   if (action.row !== undefined && /免费获得/.test(c.text || '')) {
     score += 8 + cardQuality(view, view.tradeRow[action.row], playerId, context, memory) * 1.5;
+  }
+  if (action.row !== undefined && /销毁交易行/.test(c.text || '') && /费用.*战斗/.test(c.text || '')) {
+    const target = card(view, view.tradeRow[action.row]);
+    score += (Number(target.cost) || 0) * 2.3 - cardQuality(view, view.tradeRow[action.row], playerId, context, memory) * 0.25;
   }
   return score;
 }
 
 function rowScrapScore(view, action, playerId, context, memory) {
-  const rows = action.rows || [action.row];
+  const rows = (action.rows || [action.row]).filter(row => Number.isInteger(row));
   let score = 390;
   for (const row of rows) {
     const uid = view.tradeRow[row];
@@ -250,7 +306,7 @@ function rowScrapScore(view, action, playerId, context, memory) {
 function scrapAbilityScore(view, action, playerId, context, memory) {
   const c = card(view, action.cardId);
   const text = c.text || '';
-  const section = (text.match(/销毁：([^。]+)/) || [])[1] || '';
+  const section = labeledSection(text, '销毁');
   const e = effect(section);
   const loss = c.type === 'base'
     ? 8 + baseThreat(view, action.cardId, playerId, context, memory) * 0.65
@@ -268,15 +324,31 @@ function scrapAbilityScore(view, action, playerId, context, memory) {
   return score - loss;
 }
 
-function abilityScore(view, action, playerId, context, memory) {
+function scrapTargetsScore(view, action, playerId, context, memory) {
+  const c = card(view, action.cardId);
+  const text = c.text || '';
+  const targets = action.targets || [];
+  const gain = targets.reduce((sum, uid) => sum + purgeGain(view, uid, playerId, context), 0);
+  let bonus = 0;
+  if (/每销毁一张便抽/.test(text)) bonus += targets.length * 8;
+  const combat = Number((text.match(/若销毁则获得\s*(\d+)\s*战斗/) || [])[1]) || 0;
+  if (targets.length) bonus += combat * 2.2;
+  if (/获得等同于其费用的战斗/.test(text)) {
+    bonus += targets.reduce((sum, uid) => sum + (Number(card(view, uid).cost) || 0) * 2.2, 0);
+  }
+  const total = gain * 2 + bonus;
+  if (action.ability !== 'primary' && (!targets.length || total <= 0)) return -35 + total;
+  const base = action.ability === 'ally' ? 540 : action.ability === 'optional' ? 535 : 510;
+  return base + total;
+}
+
+function abilityScore(view, action, playerId, context, memory, legalActions) {
   const c = card(view, action.cardId);
   const text = c.text || '';
   if (action.ability === 'scrap') return scrapAbilityScore(view, action, playerId, context, memory);
 
-  if (action.targets && /销毁手牌|销毁弃牌堆/.test(text)) {
-    const gain = (action.targets || []).reduce((sum, uid) => sum + purgeGain(view, uid, playerId, context), 0);
-    if (!action.targets.length || gain <= 0) return -35;
-    return 535 + gain * 2 + (/每销毁一张便抽/.test(text) ? action.targets.length * 8 : 0);
+  if (action.targets && /销毁/.test(text)) {
+    return scrapTargetsScore(view, action, playerId, context, memory);
   }
   if (action.targets && /弃至多两张牌，每弃一张获得/.test(text)) {
     const gain = (action.targets || []).reduce((sum, uid) => sum + cycleGain(view, uid, playerId, context), 0);
@@ -285,7 +357,11 @@ function abilityScore(view, action, playerId, context, memory) {
     return 515 + gain + (resource === 'combat' ? action.targets.length * 5 :
       unlockBonus(view, playerId, action.targets.length * 2, context, memory));
   }
-  if (action.targets && /弃至多两张牌|弃 1 张牌，然后抽/.test(text)) {
+  if (c.id === 'recyclingStation' && action.choice === 1) {
+    const gain = (action.targets || []).reduce((sum, uid) => sum + cycleGain(view, uid, playerId, context), 0);
+    return 510 + gain * 2;
+  }
+  if (action.targets && /弃/.test(text) && /(?:再抽|然后抽)/.test(text)) {
     const gain = (action.targets || []).reduce((sum, uid) => sum + cycleGain(view, uid, playerId, context), 0);
     if (!action.targets.length || gain <= 0) return -30;
     return 520 + gain * 2;
@@ -302,11 +378,11 @@ function abilityScore(view, action, playerId, context, memory) {
     return rowScrapScore(view, action, playerId, context, memory);
   }
 
-  let score = action.ability === 'ally' ? 425 : 405;
-  if (action.choice !== undefined) score += choiceValue(view, action, playerId, context, memory);
+  let score = action.ability === 'ally' ? (action.double ? 440 : 425) : 405;
+  if (action.choice !== undefined) score += choiceValue(view, action, playerId, context, memory, legalActions);
   const section = action.ability === 'ally'
-    ? (text.match(/同盟：([^。]+)/) || [])[1] || ''
-    : text.split('。')[0];
+    ? labeledSection(text, action.double ? '双同盟' : '同盟')
+    : primaryText(text);
   const e = effect(section);
   score += e.draw * 11 + e.combat * 0.5 + e.trade * 0.4 + e.authority * 0.25;
   score += unlockBonus(view, playerId, e.trade, context, memory);
@@ -332,42 +408,65 @@ function buyScore(view, action, playerId, context, memory) {
   return 300 + quality * 5;
 }
 
-function firstBloodWinner(view, targetId) {
-  const players = view.players || [];
-  if (!players.length) return null;
-  let index = targetId;
-  for (let count = 0; count < players.length; count++) {
-    index = (index - 1 + players.length) % players.length;
-    if (!players[index].eliminated) return index;
+function nextTeammate(view, playerId) {
+  if (!isTeamLike(view)) return null;
+  const me = self(view, playerId);
+  let next = null;
+  for (const player of view.players || []) {
+    if (!player || player.eliminated || player.team !== me.team || player.id <= playerId) continue;
+    if (next === null || player.id < next) next = player.id;
   }
-  return null;
+  return next;
 }
 
 function attackScore(view, action, playerId, context, memory) {
   const me = self(view, playerId);
   if (action.targetType === 'base') {
     const c = card(view, action.targetId);
-    const needed = Math.max(1, (Number(c.defense) || 1) - ((view.damage || {})[action.targetId] || 0));
-    if (action.amount < needed) return -90;
-    return 170 + baseThreat(view, action.targetId, playerId, context, memory) * 5 +
+    const existing = (view.damage || {})[action.targetId] || 0;
+    const needed = Math.max(1, (Number(c.defense) || 1) - existing);
+    if (action.amount < needed) {
+      if (isTeamLike(view) && nextTeammate(view, playerId) !== null) {
+        return 115 + baseThreat(view, action.targetId, playerId, context, memory) * 1.8 + action.amount * 0.9 + existing * 0.4;
+      }
+      return -90;
+    }
+    let score = 170 + baseThreat(view, action.targetId, playerId, context, memory) * 5 +
       (c.outpost ? 32 : 0) - action.amount * 0.25;
+    if (existing > 0) score += 12;
+    if (isSharedTeam(view) && c.outpost) score += 18;
+    return score;
   }
   const target = (view.players || [])[action.targetId] || {};
-  if (view.mode === 'firstBlood' && action.amount >= target.authority && firstBloodWinner(view, action.targetId) !== playerId) return -500;
+  if (view.mode === 'firstBlood' && action.amount >= target.authority && !lethalAllowed(view, playerId, action.targetId)) return -500;
   let score = 205 + action.amount * 2.4;
   if (view.mode === 'ffa') score += Math.max(0, 35 - (target.authority || 0)) * 0.25;
+  if (view.mode === 'emperor') score += (view.emperors || []).includes(action.targetId) ? 36 : 12;
   if ((me.combat || 0) === action.amount) score += 2;
   return score;
 }
 
-function transferScore(view, action, legalActions) {
+function transferScore(view, action, legalActions, playerId) {
+  const immediate = action.targetId === nextTeammate(view, playerId);
   if (action.resource === 'trade') {
     if (action.amount < 2) return -12;
     const canBuy = legalActions.some(item => item.type === 'buy');
-    return (canBuy ? 20 : 42) + action.amount * 0.3;
+    return (canBuy ? 16 : 38) + action.amount * 0.35 + (immediate ? 32 : -22);
   }
   const canAttack = legalActions.some(item => item.type === 'attack');
-  return (canAttack ? 5 : 34) + action.amount * 0.2;
+  return (canAttack ? 2 : 30) + action.amount * 0.3 + (immediate ? 38 : -24);
+}
+
+function moveCardScore(view, action, playerId, context, memory, legalActions) {
+  const quality = cardQuality(view, action.cardId, playerId, context, memory);
+  if (quality < 3) return -60 + quality;
+  const immediate = action.targetId === nextTeammate(view, playerId);
+  if (!immediate && quality < 7) return -30;
+  let score = 105 + quality * 2.8 + (immediate ? 42 : -45);
+  if (legalActions.some(item => item.type === 'buy')) score -= 35;
+  if ((view.emperors || []).includes(action.targetId)) score += 12;
+  if (card(view, action.cardId).type === 'base') score += 5;
+  return score;
 }
 
 function pendingChoice(view, legalActions, playerId, context) {
@@ -443,25 +542,31 @@ function rememberBuy(memory, view, action) {
 export function chooseAction({ view, legalActions, playerId, memory, context }) {
   if (!Array.isArray(legalActions) || !legalActions.length) return undefined;
   try {
+    openingHandSize(view, playerId, memory);
     if (view.pending) return pendingChoice(view, legalActions, playerId, context);
 
     let lethal = null;
+    let lethalRank = Infinity;
     for (const action of legalActions) {
       if (action.type !== 'attack' || action.targetType !== 'player') continue;
       const target = view.players[action.targetId] || {};
-      if (action.amount < target.authority) continue;
-      if (view.mode === 'firstBlood' && firstBloodWinner(view, action.targetId) !== playerId) continue;
-      if (!lethal || action.amount < lethal.amount) lethal = action;
+      if (action.amount < target.authority || !lethalAllowed(view, playerId, action.targetId)) continue;
+      const rank = view.mode === 'emperor' && !(view.emperors || []).includes(action.targetId) ? 1 : 0;
+      if (!lethal || rank < lethalRank || (rank === lethalRank && action.amount < lethal.amount)) {
+        lethal = action;
+        lethalRank = rank;
+      }
     }
     if (lethal) return lethal;
 
     const selected = pick(legalActions, action => {
       switch (action.type) {
-        case 'play': return playScore(view, action, playerId, context, memory);
-        case 'ability': return abilityScore(view, action, playerId, context, memory);
+        case 'play': return playScore(view, action, playerId, context, memory, legalActions);
+        case 'ability': return abilityScore(view, action, playerId, context, memory, legalActions);
         case 'buy': return buyScore(view, action, playerId, context, memory);
         case 'attack': return attackScore(view, action, playerId, context, memory);
-        case 'transfer': return transferScore(view, action, legalActions);
+        case 'transfer': return transferScore(view, action, legalActions, playerId);
+        case 'moveCard': return moveCardScore(view, action, playerId, context, memory, legalActions);
         case 'endTurn': return 0;
         default: return -10000;
       }

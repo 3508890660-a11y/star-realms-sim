@@ -1,13 +1,14 @@
 // 策略名称：价值节奏快攻（Tempo-Value Aggro）
-// 选择理由（一句话）：基础盒 1v1 是 50 权威竞速，伤害是唯一胜利资源，故以「先斩必杀 → 高效买牌滚雪球 → 销毁起始废牌 → 优先打脸抢血」压制对手。
+// 选择理由（一句话）：伤害是唯一胜利资源，故以「先斩必杀 → 高效买牌滚雪球 → 销毁起始废牌 → 优先打脸抢血」在对手成型前结束对局。
+// 本轮更新：适配 7 模式与 6 牌包、大将战个人权威/moveCard、团队整队轮流与队末清算、新动作字段（choice/row/rows/targets/targetId/double）。
 
 export const meta = {
   name: 'deepseek v4pro',
-  description: '模型 deepseek-v4-pro；策略「价值节奏快攻」：把伤害当作唯一胜利资源，先斩必杀、高效买牌滚雪球、销毁起始废牌、优先打脸抢血，抢在对手成型前结束对局。'
+  description: '模型 deepseek-v4-pro；策略「价值节奏快攻」：把伤害当作唯一胜利资源，先斩必杀、高效买牌滚雪球、销毁起始废牌、优先打脸抢血；已适配 7 种模式与 6 个牌包。'
 };
 
 // 卡牌「牌库价值」表（越大约值得买入/保留）。依据基础盒 + 殖民战争全部卡牌的效果
-// 字段（战斗/贸易/权威/抽牌/销毁/同盟）折算为单一分值；未列出的牌走 cost/type 兜底。
+// 字段（战斗/贸易/权威/抽牌/销毁/同盟）折算为单一分值；未列出的牌走 text 解析兜底。
 const CARD_VALUE = {
   // core 中立
   scout: 1, viper: 1, explorer: 2.8,
@@ -44,16 +45,49 @@ const CARD_VALUE = {
   parasite: 7.2, plasmaVent: 13.6, moonwurm: 11.6, leviathan: 13.2
 };
 
-// 同盟免费获得（row 表示免费拿一张）与可选销毁交易行（row 表示销毁一张）需要区分。
-const FREE_ACQUIRE_IDS = new Set(['blobCarrier', 'moonwurm', 'leviathan']);
-const SCRAP_ROW_IDS = new Set(['battlePod', 'swarmer', 'ravager']);
+// 从中文卡面文本中提取第一个匹配数字（用于对未知牌做通用估值）。
+function textNum(txt, re) {
+  const m = txt.match(re);
+  return m ? Number(m[1]) : 0;
+}
+
+// 截取「主要/选择」效果文本（去掉同盟/双同盟/销毁等后续段落），便于二选一分支评分。
+function primaryText(text) {
+  let t = text || '';
+  const cut = t.search(/同盟/);
+  if (cut > 0) t = t.slice(0, cut);
+  return t;
+}
+
+// 对未知牌（frontiers / crisisFleets / crisisBases）按可见字段 + 卡面文本做通用估值。
+function fallbackValue(c) {
+  const txt = c.text || '';
+  let s = (c.cost || 0) * 1.1;
+  s += textNum(txt, /(\d+)\s*战斗/) * 1.0;
+  s += textNum(txt, /(\d+)\s*贸易/) * 0.9;
+  s += textNum(txt, /(\d+)\s*权威/) * 1.15;
+  s += textNum(txt, /抽\s*(\d+)\s*张牌/) * 1.8;
+  if (/免费获得/.test(txt)) s += 4;
+  if (/摧毁目标基地/.test(txt)) s += 3;
+  if (/对手弃/.test(txt)) s += 1.5;
+  if (/销毁交易行/.test(txt)) s += 2;
+  if (c.type === 'base') s += 2;
+  if (c.outpost) s += 1;
+  return s;
+}
 
 function valueOf(view, uid) {
+  if (uid == null) return 0;
   const c = view.cards && view.cards[uid];
   if (!c) return 2;
   if (CARD_VALUE[c.id] !== undefined) return CARD_VALUE[c.id];
-  const cost = c.cost || 0;
-  return cost * 1.5 + (c.type === 'base' ? 2 : 0) + (c.outpost ? 0.5 : 0);
+  return fallbackValue(c);
+}
+
+function costOf(view, uid) {
+  if (uid == null) return 0;
+  const c = view.cards && view.cards[uid];
+  return (c && c.cost) ? c.cost : 0;
 }
 
 function authorityOf(view, id) {
@@ -61,26 +95,75 @@ function authorityOf(view, id) {
   return p ? (p.authority || 0) : 0;
 }
 
+function tradeOf(view, id) {
+  const p = view.players && view.players[id];
+  return p ? (p.trade || 0) : 0;
+}
+
 function sumValues(view, uids) {
   return (uids || []).reduce((s, uid) => s + valueOf(view, uid), 0);
 }
 
+// 给二选一分支文本打分；rowCard 用于「免费获得」分支对交易行卡估价。
+function segmentScore(seg, view, rowCard) {
+  let s = 0;
+  s += textNum(seg, /(\d+)\s*战斗/) * 1.0;
+  s += textNum(seg, /(\d+)\s*贸易/) * 0.9;
+  s += textNum(seg, /(\d+)\s*权威/) * 1.15;
+  s += textNum(seg, /抽\s*(\d+)\s*张牌/) * 1.8;
+  if (seg.includes('免费获得')) s += rowCard ? valueOf(view, rowCard) + 1 : 4;
+  if (seg.includes('摧毁')) s += rowCard ? 0 : 3;
+  if (seg.includes('销毁交易行')) s += rowCard ? costOf(view, rowCard) * 0.9 + 1 : 1;
+  return s;
+}
+
+// 卡牌「销毁」效果价值（用于评估是否值得发动自毁能力）。
+function scrapTextValue(c) {
+  const txt = c.text || '';
+  const idx = txt.indexOf('销毁：');
+  if (idx < 0) return 0;
+  const seg = txt.slice(idx + 3);
+  let s = 0;
+  s += textNum(seg, /(\d+)\s*战斗/) * 1.0;
+  s += textNum(seg, /(\d+)\s*贸易/) * 0.9;
+  s += textNum(seg, /(\d+)\s*权威/) * 1.15;
+  s += textNum(seg, /抽\s*(\d+)\s*张牌/) * 1.8;
+  if (seg.includes('摧毁')) s += 4;
+  if (seg.includes('免费获得')) s += 4;
+  return s;
+}
+
 export function chooseAction({ view, legalActions, playerId, random, memory, context }) {
-  memory.calls = (memory.calls || 0) + 1;
-  if (!Array.isArray(legalActions) || legalActions.length === 0) return legalActions[0];
-  if (view.pending) return pickPending(view, legalActions);
-  return pickMain(view, legalActions, playerId);
+  try {
+    memory.calls = (memory.calls || 0) + 1;
+    if (!Array.isArray(legalActions) || legalActions.length === 0) return legalActions[0];
+    if (view.pending) return pickPending(view, legalActions);
+    return pickMain(view, legalActions, playerId);
+  } catch (err) {
+    // 任何异常都退回安全动作，绝不抛错、绝不返回非数组内对象。
+    for (const a of (legalActions || [])) if (a && a.type === 'endTurn') return a;
+    return (legalActions && legalActions[0]);
+  }
 }
 
 // ---------------------------------------------------------------------------
-// 主阶段：严格按「必杀 > 打出 > 能力 > 打脸 > 打基地 > 购买 > 转移 > 结束」的节奏。
+// 主阶段：严格按「必杀 > 打出 > 能力 > 打脸 > 拆基地 > 购买 > 转移 > 移牌 > 结束」节奏。
 // ---------------------------------------------------------------------------
 function pickMain(view, legalActions, playerId) {
-  // 1) 必杀：当前战斗值足以清空目标权威，直接获胜。
+  const mode = view.mode;
+  const emperors = view.emperors || [];
+  const isEmperorMode = mode === 'emperor';
+
+  // 1) 必杀：伤害足以清空目标权威；大将战优先击毙大将（真正的胜负手）。
+  let lethal = null, lethalScore = -Infinity;
   for (const a of legalActions) {
-    if (a.type === 'attack' && a.targetType === 'player' && a.amount > 0 &&
-        a.amount >= authorityOf(view, a.targetId)) return a;
+    if (a.type !== 'attack' || a.targetType !== 'player' || !(a.amount > 0)) continue;
+    if (a.amount < authorityOf(view, a.targetId)) continue;
+    let sc = a.amount;
+    if (isEmperorMode && emperors.includes(a.targetId)) sc += 100000;
+    if (sc > lethalScore) { lethalScore = sc; lethal = a; }
   }
+  if (lethal) return lethal;
 
   // 2) 打出：先生成资源/触发同盟，几乎永远正确。
   let best = null, bestScore = -Infinity;
@@ -91,7 +174,7 @@ function pickMain(view, legalActions, playerId) {
   }
   if (best) return best;
 
-  // 3) 能力：同盟/基地主要/销毁，仅当净收益为正才用。
+  // 3) 能力：同盟/基地主要/可选/销毁，仅当净收益为正才用。
   best = null; bestScore = -Infinity;
   for (const a of legalActions) {
     if (a.type !== 'ability') continue;
@@ -100,7 +183,7 @@ function pickMain(view, legalActions, playerId) {
   }
   if (best && bestScore > 0) return best;
 
-  // 4) 攻击：能打脸就全量打脸，否则先拆基地（多为前哨阻挡）。
+  // 4) 攻击：能打脸就全量打脸（前哨会让打脸动作整体不存在，交给引擎过滤）。
   let face = null;
   for (const a of legalActions) {
     if (a.type === 'attack' && a.targetType === 'player') {
@@ -109,6 +192,7 @@ function pickMain(view, legalActions, playerId) {
   }
   if (face) return face;
 
+  // 5) 拆基地（多为前哨阻挡；团队模式队末才清伤害，可接力拆同一座）。
   best = null; bestScore = -Infinity;
   for (const a of legalActions) {
     if (a.type !== 'attack' || a.targetType !== 'base') continue;
@@ -117,7 +201,7 @@ function pickMain(view, legalActions, playerId) {
   }
   if (best) return best;
 
-  // 5) 购买：挑性价比最高的可负担卡牌。
+  // 6) 购买：挑性价比最高的可负担卡牌。
   best = null; bestScore = -Infinity;
   for (const a of legalActions) {
     if (a.type !== 'buy') continue;
@@ -126,14 +210,26 @@ function pickMain(view, legalActions, playerId) {
   }
   if (best && bestScore > 0) return best;
 
-  // 6) 转移（2V2）：一次性转走剩余资源给队友。
+  // 7) 转移（2V2 / 3V3）：把剩余资源一次性转给队友，队友回合开始即到账。
   let tr = null;
   for (const a of legalActions) {
     if (a.type === 'transfer') { if (!tr || a.amount > tr.amount) tr = a; }
   }
   if (tr) return tr;
 
-  // 7) 结束回合。
+  // 8) 大将战移牌：低优先级，只在贸易富余时把弃牌堆好牌喂给相邻队友。
+  if (isEmperorMode) {
+    let mc = null, mcScore = -Infinity;
+    for (const a of legalActions) {
+      if (a.type !== 'moveCard') continue;
+      const v = valueOf(view, a.cardId);
+      const s = tradeOf(view, playerId) >= 3 ? v * 0.2 : 0;
+      if (s > mcScore) { mcScore = s; mc = a; }
+    }
+    if (mc && mcScore > 0) return mc;
+  }
+
+  // 9) 结束回合。
   for (const a of legalActions) if (a.type === 'endTurn') return a;
 
   // 未知动作兜底：返回第一个合法动作，绝不抛异常。
@@ -145,15 +241,20 @@ function playScore(view, a, playerId) {
   if (!c) return 0;
   let s = valueOf(view, a.cardId);
   if (a.copy) s += valueOf(view, a.copy) * 0.5; // 隐匿针舰/尖塔：复制价值最高的目标
+
+  const txt = c.text || '';
+  const rc = a.row !== undefined ? (view.tradeRow && view.tradeRow[a.row]) : null;
+
   if (a.choice !== undefined) {
-    if (c.id === 'patrolMech') s += (a.choice === 1 ? 2 : 0); // 5 战斗 > 3 贸易
-    else if (c.id === 'parasite') {
-      if (a.choice === 0) s += 6; // 6 战斗
-      else {
-        const rc = a.row !== undefined ? view.tradeRow[a.row] : null;
-        s += 2 + (rc ? valueOf(view, rc) * 0.7 : 0); // 免费获得费用 ≤6 的牌
-      }
-    }
+    // 二选一：按卡面文本切「或」后的分支打分；带 row 的分支是「免费获得」。
+    const parts = primaryText(txt).split('或');
+    const seg = parts[Math.min(a.choice, parts.length - 1)] || '';
+    s += segmentScore(seg, view, rc);
+  } else if (a.row !== undefined) {
+    // 非选择分支的 row：免费获得（acquireCheapFree）或销毁交易行换战斗（scrapRowGainCostCombat）。
+    if (txt.includes('免费获得')) s += valueOf(view, rc) + 1.5;
+    else if (txt.includes('销毁交易行')) s += costOf(view, rc) * 0.9 + 2;
+    else s += valueOf(view, rc) * 0.7;
   }
   return s;
 }
@@ -162,47 +263,65 @@ function abilityScore(view, a, playerId) {
   const c = view.cards && view.cards[a.cardId];
   if (!c) return 0;
   const kind = a.ability;
-  const targets = a.targets || [];
+  const txt = c.text || '';
   let s = 0;
 
-  if (a.targetId) s += valueOf(view, a.targetId) + 2; // 摧毁敌方基地
+  // 摧毁目标基地（targetId 可能为 null：销毁能力不带目标）。
+  if (a.targetId != null) s += valueOf(view, a.targetId) + 2;
+
+  // 单行：免费获得 / 销毁交易行 / 同盟免费获得。
   if (a.row !== undefined) {
     const rc = view.tradeRow && view.tradeRow[a.row];
     const rv = rc ? valueOf(view, rc) : 0;
-    if (FREE_ACQUIRE_IDS.has(c.id)) s += rv + 2;       // 免费获得
-    else if (SCRAP_ROW_IDS.has(c.id)) s += rv * 0.5;   // 销毁行牌（拒绝对手）
-    else s += rv * 0.5;
+    if (txt.includes('免费获得')) s += rv + 1.5;
+    else if (txt.includes('销毁交易行')) s += costOf(view, rc) * 0.9 + 2;
+    else s += rv * 0.6;
   }
-  if (targets.length) {
-    const lost = sumValues(view, targets);
-    if (kind === 'optional' || kind === 'primary' || kind === 'ally') {
-      // 销毁废牌（压缩）或弃牌过牌：倾向销毁价值最低者
-      s += targets.length * 2.0 - lost * 0.45;
+
+  // 多行（可选销毁交易行 N 张，rows 数组）。
+  if (Array.isArray(a.rows)) {
+    for (const r of a.rows) {
+      const rc = view.tradeRow && view.tradeRow[r];
+      s += costOf(view, rc) * 0.5 + 1;
     }
   }
-  if (!a.targetId && a.row === undefined && !targets.length) {
-    if (kind === 'ally') s += 2.0;                    // 同盟数值（抽牌/战斗等）
-    else if (kind === 'scrap') s += valueOf(view, a.cardId) * 0.4 - valueOf(view, a.cardId) * 0.8; // 自毁多为负
-    else s += 1.0;                                    // 基地主要 / 可选纯资源
+
+  // 销毁手牌/弃牌堆（targets）或弃牌过牌。
+  if (a.targets && a.targets.length) {
+    const lost = sumValues(view, a.targets);
+    if (kind === 'optional' || kind === 'primary' || kind === 'ally') {
+      s += a.targets.length * 2.0 - lost * 0.45;
+    }
+  }
+
+  // 纯资源 / 同盟 / 双同盟 / 销毁（自毁）。
+  if (a.targetId == null && a.row === undefined && !Array.isArray(a.rows) && !(a.targets && a.targets.length)) {
+    if (kind === 'ally') {
+      s += a.double ? 2.5 : 2.0; // 双同盟是额外一次同盟机会，视作等价免费同盟
+    } else if (kind === 'scrap') {
+      s += scrapTextValue(c) - valueOf(view, a.cardId) * 0.5; // 自毁多为负，仅效果足够强才用
+    } else {
+      s += 1.0; // 基地主要 / 可选纯资源
+    }
   }
   return s;
 }
 
 function baseAttackScore(view, a) {
   const d = view.cards && view.cards[a.targetId];
-  const needed = d && d.defense ? d.defense : 1;
+  if (!d) return 0;
+  const defense = d.defense || 0;
+  const existing = (view.damage && view.damage[a.targetId]) || 0;
+  const needed = Math.max(1, defense - existing);
   const killing = a.amount >= needed;
-  const val = d ? valueOf(view, a.targetId) : 2;
-  return val + (killing ? 15 : 0) - needed * 0.2;
+  return valueOf(view, a.targetId) + (killing ? 15 : 0) - needed * 0.2;
 }
 
 function buyScore(view, a) {
   if (a.explorer) return 1.2; // 探索者低优先，仅在无可购时兜底
   const rc = view.tradeRow && view.tradeRow[a.row];
   if (!rc) return 0;
-  const c = view.cards[rc];
-  const cost = c && c.cost ? c.cost : 0;
-  return valueOf(view, rc) - cost * 0.6;
+  return valueOf(view, rc) - costOf(view, rc) * 0.6;
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +330,7 @@ function buyScore(view, a) {
 function pickPending(view, legalActions) {
   const p = view.pending;
   if (!p) return legalActions[0];
-  if (p.type === 'discard' || p.type === 'selectScrap') {
+  if (p.type === 'discard' || p.type === 'selectScrap' || p.type === 'scrapMandatory') {
     // 弃/销毁价值最低的牌（毒蛇、侦察艇优先）
     return worstCardAction(view, legalActions, a => a.cardId);
   }

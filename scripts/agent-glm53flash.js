@@ -2,14 +2,18 @@
 // 选择理由（一句话）：1v1 没有回合上限，初始牌库 80% 是只值 1 贸易的侦察艇，
 // 因此「贸易复利购买 + 持续销毁低质牌做牌库压缩」能滚出不可逆的质量差，
 // 前中期囤经济，中后期把经济兑成一波爆发战斗，精确结算 lethal 并压制对方前哨。
+// 本轮更新：按 2026-11-08 版程序适配——模式扩到 7 种与 6 牌包（未知卡改用卡面 text 通用估值）、
+// 团队回合改整队轮流/队末清算（重写攻击半伤与转移口径）、新增 hydra3/emperor 适配
+// （血线读个人权威、认识 double:true 双同盟与 moveCard、信任 legalActions 的目标过滤）。
 
 export const meta = {
   name: 'GLM5.3flash 精炼雪球',
-  description: 'glm-5.3-flash · 精炼雪球：前中期重贸易购买并以销毁能力压缩牌库，滚出手牌质量雪球；中后期转化为爆发战斗、精确 lethal 与前哨控制压制对手。'
+  description: 'glm-5.3-flash · 精炼雪球：前中期重贸易购买并以销毁能力压缩牌库，滚出手牌质量雪球；中后期转化为爆发战斗、精确 lethal 与前哨控制，已适配 7 种模式与 6 个牌包。'
 };
 
 // ---------------------------------------------------------------------------
-// 卡牌估值表（基础盒 + 殖民战争）。RATING：购买价值 0-10；KEEP：保留价值（弃牌/销毁时用）。
+// 卡牌估值表。RATING：购买价值 0-10；KEEP：保留价值（弃牌/销毁时用）。
+// 覆盖 core / colonyWars + 三个新牌包的代表性卡；表外卡一律走 estimateFromText。
 // ---------------------------------------------------------------------------
 const RATING = {
   // 基础盒 · 虫群
@@ -37,6 +41,24 @@ const RATING = {
   frontierStation: 6.5, peacekeeper: 8.5, plasmaVent: 6.5, supplyDepot: 6,
   imperialPalace: 7.5, loyalColony: 8, moonwurm: 8.5, theWrecker: 7,
   emperorsDreadnaught: 9, factoryWorld: 7, leviathan: 9.5, theIncinerator: 7,
+  // 边疆（frontiers）
+  fr_blobAlpha: 8.5, fr_blobMiner: 6, fr_burrower: 7, fr_crusher: 7, fr_hiveQueen: 9,
+  fr_infestedMoon: 7, fr_moonwurmHatchling: 7, fr_nestingGround: 6, fr_pulverizer: 6,
+  fr_spikeCluster: 5, fr_stinger: 6, fr_swarmCluster: 7.5, fr_builderBot: 5.5,
+  fr_conversionYard: 5, fr_defenseSystem: 5.5, fr_destroyerBot: 6, fr_enforcerMech: 7.5,
+  fr_integrationPort: 4.5, fr_nanobotSwarm: 8, fr_neuralNexus: 6.5, fr_plasmaBot: 5.5,
+  fr_reclamationStation: 5.5, fr_capturedOutpost: 5, fr_cargoCraft: 7, fr_farmShip: 6.5,
+  fr_frontierHawk: 6, fr_hammerhead: 7, fr_imperialFlagship: 9, fr_jammingTerminal: 6.5,
+  fr_lightCruiser: 7.5, fr_orbitalGunPlatform: 6, fr_siegeFortress: 7.5,
+  fr_federationBattleship: 9, fr_federationCruiser: 7.5, fr_frontierRunner: 6,
+  fr_gateship: 8, fr_ionStation: 6.5, fr_longHauler: 7, fr_orbitalShuttle: 7,
+  fr_outlandStation: 6, fr_patrolBoat: 7, fr_transitNexus: 9,
+  // 危机：舰队与要塞（crisisFleets）
+  cf_borderFort: 6.5, cf_capitolWorld: 8.5, cf_cargoLaunch: 4.5, cf_customsFrigate: 7,
+  cf_patrolBot: 6, cf_spikePod: 5.5, cf_starFortress: 7,
+  // 危机：基地与战列舰（crisisBases）
+  cb_defenseBot: 6.5, cb_fighterBase: 5.5, cb_imperialTrader: 7, cb_obliterator: 8,
+  cb_tradeRaft: 5, cb_tradeWheel: 5.5,
   explorer: 5
 };
 const KEEP = Object.assign({}, RATING, { scout: 0.4, viper: 0.8, explorer: 2.6 });
@@ -47,10 +69,36 @@ const KEEP = Object.assign({}, RATING, { scout: 0.4, viper: 0.8, explorer: 2.6 }
 function def(view, uid) {
   return view && view.cards ? view.cards[uid] : null;
 }
+// 未知卡通用估值：解析卡面 text 中的数字效果（引擎的 text 与实际行为一致）。
+function estimateFromText(d) {
+  const t = String(d.text || '');
+  let v = 0;
+  const grab = (re, w) => {
+    let s = 0;
+    const list = t.match(re);
+    if (list) for (const m of list) s += Number(m[1]) * w;
+    return s;
+  };
+  v += grab(/获得\s*(\d+)\s*贸易/g, 1.0);
+  v += grab(/获得\s*(\d+)\s*战斗/g, 0.85);
+  v += grab(/获得\s*(\d+)\s*权威/g, 0.9);
+  v += grab(/抽\s*(\d+)\s*张牌/g, 1.1);
+  if (/摧毁目标基地/.test(t)) v += 1.6;
+  if (/免费获得/.test(t)) v += 2;
+  if (/双同盟/.test(t)) v += 0.8;
+  if (/目标对手弃/.test(t)) v += 0.6;
+  if (/销毁交易行/.test(t)) v += 0.5;
+  if (d.type === 'base') v += 0.5; // 基地持续在场的溢价
+  if (d.outpost) v += 0.6;
+  return v;
+}
 function rateDef(d) {
   if (!d) return 0;
   const r = RATING[d.id];
-  return typeof r === 'number' ? r : Math.min(3 + (d.cost || 0) * 0.7, 9);
+  if (typeof r === 'number') return r;
+  const est = estimateFromText(d);
+  const fallback = Math.min(3 + (d.cost || 0) * 0.7, 9);
+  return Math.max(est, fallback * 0.9);
 }
 function rating(view, uid) {
   return rateDef(def(view, uid));
@@ -109,25 +157,33 @@ function rightNeighborAlive(view, targetId) {
   }
   return null;
 }
+function isTeamLike(view) {
+  return Array.isArray(view.teams) && view.teams.length > 0;
+}
+// 经济期阈值按 7 种模式分档：6 人团队模式回合数按人次计，节奏更长。
+const ECON_TURNS = { standard: 6, ffa: 6, hunter: 7, firstBlood: 6, team2v2: 8, hydra3: 12, emperor: 6 };
 function econPhase(view, me, context) {
   const turn = (context && context.turn) || view.turn || 1;
-  if (view.mode === 'team2v2') return turn <= 9;
-  return turn <= 6;
+  const lim = ECON_TURNS[view.mode];
+  return turn <= (typeof lim === 'number' ? lim : 6);
 }
 
 // ---------------------------------------------------------------------------
 // lethal：先手必杀。firstBlood 模式下若击杀会把胜利送给别人则不杀。
+// 大将战里击杀敌方大将直接获胜，多个 lethal 时优先杀大将。
 // ---------------------------------------------------------------------------
 function findLethal(view, legalActions, me) {
+  let fallback = null;
   for (const a of legalActions) {
     if (a.type !== 'attack' || a.targetType !== 'player') continue;
     const t = view.players[a.targetId];
     if (!t) continue;
-    if (a.amount < t.authority) continue;
+    if (a.amount < t.authority) continue; // 血线一律读个人权威（emperor 里 teams[].authority 是 0）
     if (view.mode === 'firstBlood' && rightNeighborAlive(view, a.targetId) !== me) continue;
-    return a;
+    if (Array.isArray(view.emperors) && view.emperors.includes(a.targetId)) return a;
+    if (!fallback) fallback = a;
   }
-  return null;
+  return fallback;
 }
 
 // ---------------------------------------------------------------------------
@@ -154,13 +210,17 @@ function handlePending(view, legalActions, me) {
     return best;
   }
   if (kind === 'eventChoice') return handleEvent(view, legalActions, me);
-  return legalActions[0];
+  return legalActions[0]; // 其它待决类型安全兜底
 }
 
 // 事件选择：黑洞 / 彗星 / 轨道轰击 / 跃迁，未知事件走兜底。
+const EVENT_KIND = { blackHole: 'blackHole', comet: 'comet', bombardment: 'bombardment', warpJump: 'warpJump' };
 function handleEvent(view, actions, me) {
   const p = view.pending || {};
   let kind = p.kind;
+  if (!kind && view.eventContext && EVENT_KIND[view.eventContext.eventId]) {
+    kind = EVENT_KIND[view.eventContext.eventId];
+  }
   if (!kind) {
     if (actions.some(a => a.pay || a.baseId)) kind = 'bombardment';
     else if (actions.some(a => a.cards)) kind = 'warpJump';
@@ -224,7 +284,7 @@ function handleEvent(view, actions, me) {
 }
 
 // ---------------------------------------------------------------------------
-// 打牌：全都要打，挑“分支质量”最高的先打（复制对象、primaryChoice 分支）。
+// 打牌：全都要打，挑“分支质量”最高的先打（复制对象、primaryChoice 分支、带 row 免费获取）。
 // ---------------------------------------------------------------------------
 function choiceScorePlay(view, a, me, econ) {
   const d = def(view, a.cardId);
@@ -247,6 +307,11 @@ function pickPlay(view, legalActions, me, econ) {
   for (const a of plays) {
     let s = 1;
     if (a.copy) s += rateDef(def(view, a.copy)) * 0.5; // 隐匿针舰/尖塔：复制场面上最强的
+    if (a.row !== undefined) {
+      // 打牌附带免费获取 / 销毁行换战斗（frontiers 等新方言），按行卡价值加分
+      const rd = def(view, view.tradeRow[a.row]);
+      if (rd) s += 1.5 + rateDef(rd) * 0.25;
+    }
     s += choiceScorePlay(view, a, me, econ);
     if (s > bs) { bs = s; best = a; }
   }
@@ -254,7 +319,8 @@ function pickPlay(view, legalActions, me, econ) {
 }
 
 // ---------------------------------------------------------------------------
-// 能力：同盟 / 主要 / 可选 / 销毁。销毁压缩牌库优先，其次摧毁前哨，再同盟，再资源。
+// 能力：同盟（含 double:true 双同盟）/ 主要 / 可选 / 销毁。
+// 销毁压缩牌库优先，其次摧毁前哨，再同盟，再资源。
 // ---------------------------------------------------------------------------
 function blobShipCount(view, me) {
   const p = view.players[me] || {};
@@ -277,14 +343,15 @@ function choiceScoreAbility(view, a, d, me, econ) {
 }
 
 function bestEnemyBaseTarget(view, targetIds) {
-  // 优先可整杀的前哨（剩余防御最低），否则价值最高的基地。
+  // 优先可整杀的前哨（剩余防御最低，计入累计伤害），否则价值最高的基地。
+  const dmg = view.damage || {};
   let bestOutpost = null, bestODef = Infinity;
   let bestBase = null, bestRating = -Infinity;
   for (const uid of targetIds || []) {
     const d = def(view, uid);
     if (!d) continue;
     if (d.outpost) {
-      const remain = Math.max(1, (d.defense || 1));
+      const remain = Math.max(1, (d.defense || 1) - (dmg[uid] || 0));
       if (remain < bestODef) { bestODef = remain; bestOutpost = uid; }
     } else if (rating(view, uid) > bestRating) {
       bestRating = rating(view, uid); bestBase = uid;
@@ -318,8 +385,9 @@ function scoreAbility(view, a, me, mates, econ) {
     return -1;
   }
 
-  // 销毁己方牌的压缩能力（机械阵营为主）：目标全部是侦察艇/毒蛇才动手
+  // 销毁/弃牌己方牌的能力（机械阵营、discardThenDraw、depot、recycle 等）
   if (targets) {
+    if (!targets.length) return -1; // 空目标 = 空过，不启动
     const bad = targets.every(c => keepVal(view, c) <= 1.1);
     if (bad) {
       if (a.resource === 'trade' && econ) return 4 + targets.length;
@@ -334,24 +402,26 @@ function scoreAbility(view, a, me, mates, econ) {
     }
     // 轨道平台 弃1抽1：丢最差的牌做过滤
     if (d.id === 'orbitalPlatform' && targets.length === 1 && keepVal(view, targets[0]) <= 3) return 3;
+    // 弃 1 抽 1 的过滤型效果（discardThenDraw）：丢最差牌约等于免费过滤
+    if (targets.length === 1 && keepVal(view, targets[0]) <= 1.6) return 3;
     return -1; // 没有低质牌就不启动销毁/弃牌能力
   }
 
-  // 同盟免费拿牌
+  // 同盟免费拿牌（含 double:true 的双同盟取行分支）
   if (a.ability === 'ally' && a.row !== undefined) {
     const rd = def(view, view.tradeRow[a.row]);
     if (!rd) return -1;
-    return 3 + rateDef(rd) * 0.3; // blobCarrier / moonwurm / leviathan
+    return 3 + rateDef(rd) * 0.3; // blobCarrier / moonwurm / leviathan / gateship 类
   }
 
-  // 摧毁目标基地（missileMech 可选 / mechCruiser、commandShip 同盟等）
+  // 摧毁目标基地（missileMech 可选 / mechCruiser、commandShip、enforcerMech 同盟等）
   if (a.targetId !== undefined && a.ability !== 'scrap') {
     const td = def(view, a.targetId);
     if (!td) return -1;
     return td.outpost ? 4 : 2 + rateDef(td) * 0.2;
   }
 
-  // blobDestroyer 同盟：摧毁基地和/或销毁交易行
+  // blobDestroyer 同盟：摧毁基地和/或销毁交易行（引擎已拆成单选/组合动作，各分支独立打分）
   if (d.id === 'blobDestroyer' && a.ability === 'ally') {
     let s = 0;
     if (a.targetId) {
@@ -365,19 +435,22 @@ function scoreAbility(view, a, me, mates, econ) {
     return s > 0 ? s : -1;
   }
 
-  // 销毁交易行（swarmer / ravager）：只在对手必抢的高价值卡且我买不起时才拆行拒购
+  // 销毁交易行（swarmer / ravager / spikePod 等）：拒购高价值卡优先，
+  // 其余情况把“销毁行换等费战斗”当小收益，不再一律拒绝。
   if (a.row !== undefined || Array.isArray(a.rows)) {
     const rows = a.rows || [a.row];
-    let deny = 0;
+    let s = 0.8;
     for (const r of rows) {
       const rd = def(view, view.tradeRow[r]);
-      if (rd && rateDef(rd) >= 8 && (view.players[me].trade || 0) < (rd.cost || 0)) deny += 1.5;
+      if (!rd) continue;
+      if (rateDef(rd) >= 8 && (view.players[me].trade || 0) < (rd.cost || 0)) s += 1.5; // 对手必抢且我买不起
+      else s += Math.min((rd.cost || 0) * 0.12, 1); // 可能换到战斗的期望小收益
     }
-    return deny > 0 ? 2.5 : -1;
+    return s;
   }
 
-  // 置牌库顶类同盟（centralOffice / freighter / federationShipyard）
-  if (a.ability === 'ally') return 3;
+  // 置牌库顶类同盟（centralOffice / freighter / federationShipyard）；double:true 当一次额外同盟机会
+  if (a.ability === 'ally') return a.double ? 3.3 : 3;
   // 其余主要能力（资源、抽牌等）默认可用
   if (a.ability === 'primary') return 1.5 + choiceScoreAbility(view, a, d, me, econ) * 0.5;
   if (a.ability === 'optional') return 1;
@@ -397,8 +470,16 @@ function pickAbility(view, legalActions, me, econ) {
 }
 
 // ---------------------------------------------------------------------------
-// 攻击：只整杀不半伤（引擎在回合末清空基地伤害记录，半伤全是浪费）。
+// 攻击。个人模式维持「只整杀不半伤」（回合末清伤害）；
+// 团队模式（team2v2/hydra3）基地伤害队末才清零，队友可合击同一座基地，
+// 因此先整杀，没有整杀机会时允许把多余战斗砸进高价值基地供队友续刀。
+// 打脸目标不按座位推导，完全信任 legalActions 给出的 targetId。
 // ---------------------------------------------------------------------------
+function neededToKill(view, uid, fallbackDef) {
+  const dmg = (view.damage || {})[uid] || 0;
+  return Math.max(1, (fallbackDef || 1) - dmg);
+}
+
 function pickAttack(view, legalActions, me) {
   const atks = legalActions.filter(a => a.type === 'attack');
   if (!atks.length) return null;
@@ -408,7 +489,10 @@ function pickAttack(view, legalActions, me) {
   if (face.length) {
     const enemies = [...new Set(face.map(a => a.targetId))];
     let target;
-    if (view.mode === 'firstBlood') {
+    const emps = enemies.filter(id => Array.isArray(view.emperors) && view.emperors.includes(id));
+    if (view.mode === 'emperor' && emps.length) {
+      target = emps[0]; // 大将战：能打大将就打大将（杀大将直接获胜）
+    } else if (view.mode === 'firstBlood') {
       // 优先打“击杀后我直接获胜”的座位，否则打权威最低者
       target = enemies.find(id => rightNeighborAlive(view, id) === me);
       if (!target) target = enemies.reduce((lo, id) =>
@@ -434,18 +518,30 @@ function pickAttack(view, legalActions, me) {
   if (baseActs.length) {
     const killable = baseActs.filter(a => {
       const d = def(view, a.targetId);
-      return d && a.amount >= (d.defense || 1);
+      return d && a.amount >= neededToKill(view, a.targetId, d.defense);
     });
     if (killable.length) {
       const outposts = killable.filter(a => def(view, a.targetId).outpost);
       const pool = outposts.length ? outposts : killable;
       const best = pool.reduce((b, a) => {
         if (outposts.length) {
-          return (def(view, a.targetId).defense || 0) < (def(view, b.targetId).defense || 0) ? a : b;
+          return neededToKill(view, a.targetId, def(view, a.targetId).defense) <
+            neededToKill(view, b.targetId, def(view, b.targetId).defense) ? a : b;
         }
         return rating(view, a.targetId) > rating(view, b.targetId) ? a : b;
       });
       return best;
+    }
+    // 团队模式专属：没有整杀机会时，把多余战斗砸进高价值基地（伤害队末才清，队友能续刀）
+    if (isTeamLike(view)) {
+      let best = null, bs = -Infinity;
+      for (const a of baseActs) {
+        const d = def(view, a.targetId);
+        if (!d) continue;
+        const s = rateDef(d) + (d.outpost ? 1 : 0) + a.amount * 0.05;
+        if (s > bs) { bs = s; best = a; }
+      }
+      if (best && bs >= 5 && best.amount >= 4) return best;
     }
   }
   return null;
@@ -461,7 +557,7 @@ function pickBuy(view, legalActions, me, econ) {
   let best = null, bs = -Infinity;
   for (const a of buys) {
     let d;
-    if (a.explorer) d = { id: 'explorer', faction: 'neutral', cost: 2, type: 'ship' };
+    if (a.explorer) d = { id: 'explorer', faction: 'neutral', cost: 2, type: 'ship', text: '获得 2 贸易' };
     else d = def(view, view.tradeRow[a.row]);
     if (!d) continue;
     let s = rateDef(d);
@@ -476,26 +572,60 @@ function pickBuy(view, legalActions, me, econ) {
   const expl = buys.find(a => a.explorer);
   if (expl) return expl;
   if (bs >= 3.4) return best;
-  return null; // 剩的贸易太低不值得乱花（2V2 会转给队友）
+  return null; // 剩的贸易太低不值得乱花（团队模式会转给队友）
 }
 
 // ---------------------------------------------------------------------------
-// 2V2：回合末把用不掉的贸易/战斗转给队友（资源不转就浪费）。
+// 大将战专属 moveCard：花 1 贸易把弃牌堆一张牌交给相邻队友。
+// 只在贸易富余（大概率买完牌）且弃牌堆确有好牌时启动；优先交给本队大将，
+// 否则交给手牌+牌库最薄的队友。贸易紧张时绝不挪用买牌预算。
+// ---------------------------------------------------------------------------
+function pickMoveCard(view, legalActions, me) {
+  const moves = legalActions.filter(a => a.type === 'moveCard');
+  if (!moves.length) return null;
+  const p = view.players[me] || {};
+  if ((p.trade || 0) < 4) return null;
+  const seen = new Map();
+  for (const a of moves) {
+    const v = rating(view, a.cardId);
+    if (!seen.has(a.cardId) || v > seen.get(a.cardId)) seen.set(a.cardId, v);
+  }
+  let bestCard = null, bv = -Infinity;
+  for (const [cardId, v] of seen.entries()) if (v > bv) { bv = v; bestCard = cardId; }
+  if (!bestCard || bv < 6.5) return null;
+  const emps = Array.isArray(view.emperors) ? view.emperors : [];
+  const myEmperor = emps.find(id =>
+    id !== me && view.players[id] && !view.players[id].eliminated && view.players[id].team === p.team);
+  if (myEmperor !== undefined) {
+    const toEmp = moves.find(a => a.cardId === bestCard && a.targetId === myEmperor);
+    if (toEmp) return toEmp;
+  }
+  let pick = null, bn = Infinity;
+  for (const a of moves) {
+    if (a.cardId !== bestCard) continue;
+    const t = view.players[a.targetId];
+    if (!t || t.eliminated) continue;
+    const n = (t.handCount || 0) + (t.deckCount || 0);
+    if (n < bn) { bn = n; pick = a; }
+  }
+  return pick;
+}
+
+// ---------------------------------------------------------------------------
+// 团队模式（team2v2 / hydra3）转移：整队轮流下队友紧接着行动，
+// transfer 出去的资源下一动就到账，所以回合末把用不掉的贸易/战斗全额转出去。
 // ---------------------------------------------------------------------------
 function pickTransfer(view, legalActions, me) {
-  if (!Array.isArray(view.teams) || !view.teams.length) return null;
+  if (!isTeamLike(view)) return null;
   const p = view.players[me] || {};
   const acts = legalActions.filter(a => a.type === 'transfer');
   if (!acts.length) return null;
-  if ((p.trade || 0) > 0) {
-    const t = acts.find(a => a.resource === 'trade' && a.amount === p.trade);
-    if (t) return t;
-  }
-  if ((p.combat || 0) > 0) {
-    const c = acts.find(a => a.resource === 'combat' && a.amount === p.combat);
-    if (c) return c;
-  }
-  return null;
+  const full = (resource) => {
+    if ((p[resource] || 0) <= 0) return null;
+    return acts.find(a => a.resource === resource && a.amount === p[resource]) ||
+      acts.filter(a => a.resource === resource).reduce((b, a) => (a.amount > b.amount ? a : b), acts.find(a => a.resource === resource));
+  };
+  return full('trade') || full('combat') || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -519,11 +649,11 @@ function decide(view, legalActions, me, context) {
   const play = pickPlay(view, legalActions, me, econ);
   if (play) return play;
 
-  // 2. 能力（同盟/销毁压缩/资源/摧毁基地）
+  // 2. 能力（同盟/双同盟/销毁压缩/资源/摧毁基地）
   const ability = pickAbility(view, legalActions, me, econ);
   if (ability) return ability;
 
-  // 3. 攻击（lethal 已在前面处理，这里做整杀前哨与打脸）
+  // 3. 攻击（lethal 已在前面处理，这里做整杀前哨、打脸与团队合击半伤）
   const attack = pickAttack(view, legalActions, me);
   if (attack) return attack;
 
@@ -531,11 +661,15 @@ function decide(view, legalActions, me, context) {
   const buy = pickBuy(view, legalActions, me, econ);
   if (buy) return buy;
 
-  // 5. 2V2 转移剩余资源
+  // 5. 大将战：富余贸易把弃牌堆好牌移交给队友（优先本队大将）
+  const move = pickMoveCard(view, legalActions, me);
+  if (move) return move;
+
+  // 6. 团队模式：回合末把剩余贸易/战斗全额转给队友
   const transfer = pickTransfer(view, legalActions, me);
   if (transfer) return transfer;
 
-  // 6. 兜底：未知动作类型时优先选一个非结束回合的动作
+  // 7. 兜底：未知动作类型时优先选一个非结束回合的动作
   const useful = legalActions.find(a => a.type !== 'endTurn');
   return useful || legalActions[0];
 }

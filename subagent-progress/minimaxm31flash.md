@@ -118,3 +118,76 @@
 - **选择手工卡表而非解析规则文本**，代价是新增牌需要维护，好处是估值快（单次决策最大 5ms）、行为稳定可复现、不受文本改写影响。
 - **选择「逐动作打分」而非分层规则表**，代价是优先级不够生硬直观，好处是任何模式、任何牌包组合都自动继承同一套逻辑，不需要为每种模式写分支。
 - **不修改 `view` / `legalActions`**，全部决策只读；同分用引擎提供的 `random` 打破，因此既不违反深冻结约束，也不会因为遍历顺序而在同分动作里产生系统性偏袒。
+
+
+---
+
+## 附录 · 2026-11-08 按程序更新修订（隔离轮）
+
+执行模型 ID：minimax-m3.1-flash
+策略名称：破垒夺权（Breach the Wall, Seize Authority）
+
+## 一、本次改动点（逐条对应 PROGRAM-UPDATES.md 第 1–6 节）
+
+| 更新条目 | 本版的处理 |
+|---|---|
+| **第 1 节：模式 5 种 → 7 种** | 新增 `MODE_CFG` 模式口径表，`standard / ffa / hunter / firstBlood / team2v2 / hydra3 / emperor` 全部覆盖。删掉旧脚本里「按 2 人或 4 人写死」的假设，`view.players.length` 一律当作 2/3/4/6 看待，队伍人数按 `view.players[i].team` 读取（3 人队与 2 人队通用），全程不写死座位数。 |
+| **第 2 节：团队模式规则修正** | 三条代码行为改变分别处理：①起手牌按队发放——估值不再假设「每回合每人固定补 5 张」，而是按 `view.players[i].handCount` 实际读数折算产出；②整队轮流——`teammateActsSoon()` 按同队座位升序判断「下一位队友是谁」，只对紧随其后的队友给到账系数 1.2、其余队友 0.7（`transfer` 出去的资源要等他那一轮才到账）；③队末才清算——新增 `ctx.damagePersists` 语义：团队模式下基地伤害不清零，队友可以接着打同一座基地，因此 `scoreAttackBase` 的补刀判断从「我这一轮能不能打死」升级为「本队这一轮能不能打死」（`ctx.teamReachCombat` 含队友的战斗与手牌产出），且未打死的基地在团队模式下仍保留 18% 残值。 |
+| **第 3 节：大将战专属字段与口径** | 血线一律读 `view.players[targetId].authority`（`hpOf()`），不再读 `view.teams[].authority`（大将战里它是 0）；新增 `ctx.isEmperor / ctx.myEmperorSeat / ctx.enemyEmperorSeat` 识别两名大将。**目标可打性不自己推导**，而是照搬 `engine/modes.js` 的 `canAttackPlayer` 口径实现 `eligiblePlayerTargets()`：大将可打任意敌人；提督按「两队提督各自队内座位序一一配对」找对位提督（**不是座位 +1**），对位提督阵亡后才解锁敌方大将；实际选动作时仍然只从 `legalActions` 里取对象。新增 `moveCard` 动作的评分分支（旧脚本完全没见过）。 |
+| **第 4 节：牌包 3 个 → 6 个且可自由组合** | 补齐 `frontiers`(42 种) / `crisisFleets`(7 种) / `crisisBases`(6 种) 全部卡牌的效果条目。同时按「写死表只能作加成、不能作唯一依据」的要求，实现了 `inferDb()` 通用兜底：任何不在表里的卡，用 `view.cards[uid].text` 反推「主要 / 同盟 / 销毁」三段并抓取贸易、战斗、权威、抽牌、弃牌等数字，`text` 里出现「摧毁目标基地」「免费获得」「销毁交易行」「前哨」也会被识别。表里有卡时用表，表里没有就用 text，两条路都能给出可排序的估值。 |
+| **第 5 节：新卡面效果方言 → 动作字段** | 逐个落实：`choice`（`primaryChoice` 二选一，`play` 与 `ability:'primary'` 都读）；`row`（`acquireFreeMax` / `acquireCheapFree` / `scrapRowGainCostCombat` 免费获取与拆行换战斗）；`rows`（`optionalPrimary.scrapRow` 拆多张交易行）；`targets`（`scrapOwn` / `discardThenDraw` / `depot` / `recycle` 的选牌目标，配合 `minScrap`「至多 N 张」）；`targetId`（`destroyBase` 摧毁基地，含 `targetId: null` 的空目标）；`resource`（`depot` 的贸易/战斗二选一）；**`double:true` 的 `ally`**——双同盟仍以 `ability:'ally'` 暴露，脚本用 `db.dal`（双同盟键）取效果并给 5% 兑现系数；`ability:'scrap'` 销毁能力同样有专门分支。 |
+| **第 6 节：对脚本的硬性影响** | 7 模式 / 6 牌包任意组合全覆盖（含只开 `frontiers`、只开 `crisisFleets`、只开 `crisisBases`、全开）；所有附加字段原样从 `legalActions` 返回，不自行拼造；未知 `type` 一律走 `default: score = 0` 的安全兜底；`view` 与 `legalActions` 只读，绝不 `sort()` 原数组（内部排序一律在 `slice()` 出来的副本上做）；零依赖（无 `import` / `require` / 文件系统 / 网络）；单次决策实测远低于 3000ms。 |
+
+## 二、新增 3V3 模式适配
+
+**`hydra3`（三头龙，6 人，两队各 3 人，全队共享 100 权威）**
+
+- 血线读 `view.teams[].authority`（共享权威模式），不是个人权威——因为 `adjustAuthority()` 在 `isTeamMode` 下改的是队伍池并同步全队。
+- 前哨护盾按**整队**计算：`teamHasOutpost()` 查的是整队，所以只要敌方任一人有前哨，对面整队都打不到权威伤害。因此「破垒」的价值在 3V3 里比 1v1 更高：拆掉对方**最后一座**前哨才真正打开通道，`killBaseVP()` 里给共享权威模式的 `gateBonus` 乘 2。
+- 权威产出（`authority` 类效果）在共享权威模式下价值等同于血线，按 `authorityVP` 折算；提督的个人权威没有独立意义（权威在队伍上）。
+- 队友转移资源：整队轮流意味着队友紧接着行动，`transfer` 的贸易/战斗在队友回合开始时到账，可以用来打**同一座**已被打过血的基地（伤害队末才清）。
+
+**`emperor`（大将战，6 人，每队 1 大将 60 权威 + 2 提督 50 权威）**
+
+- 权威在个人身上：`view.teams[].authority` 在此模式为 0，脚本统一走 `view.players[targetId].authority`。
+- 胜负条件是**大将**被击败。所以攻击评分分两类：对敌方大将给高权重（`amount × 1.1 + 4`，致命一击额外 `emperorKillBonus`）；对敌方提督只给 `amount × 0.4` 的常规伤害加 `eliminateBonus`——因为打提督不直接赢，但提督阵亡会解锁己方提督去打敌方大将（`unlockBonus`）。
+- 大将可以攻击/指定任何敌方玩家与基地；提督只能打对位提督及其基地，对位提督阵亡后才解锁敌方大将。对位是「两队提督按各自队内座位序一一配对」，脚本按此实现 `eligiblePlayerTargets()`，**不按座位 +1 推导**。
+- 新增 `moveCard`（花 1 贸易把弃牌堆里的一张牌交给队内相邻队友）：引擎只给「队内顺序相邻」的队友出这个动作（3 人队里环形相邻等价于其余两名队友），评分按「牌的价值 × 0.2 − 1 贸易成本 + 队友即将行动加成」，只作小额增值，不会喧宾夺主。
+
+## 三、新牌包与新动作适配
+
+**新牌包（frontiers / crisisFleets / crisisBases）**
+
+- 55 张新卡全部补进效果表，并覆盖它们带来的新效果键：`combatIfTwoBases`（cb_defenseBot 控两座基地 +8 战斗）、`combatIfEnemyTwoBases`（cb_obliterator 对手两座基地 +6 战斗）、`authorityIfTwoBases`（fr_orbitalShuttle 控两座基地 +4 权威）、`gainCostCombat`（fr_neuralNexus 销毁的牌按费用换战斗）、`combatIfScrap`（fr_conversionYard 销毁后 +4 战斗）、`scrapRowGainCostCombat`（fr_pulverizer 销毁交易行牌并获得等同于其费用的战斗）、`topDeckNextBase`（fr_longHauler）。
+- 交易行里可能出现没见过的卡，因此保留了 `inferDb()` 的 text 通用估值兜底；表中有卡时表内效果优先，text 解析作为补充而不是唯一依据。
+
+**新动作形态**
+
+- `double:true` 的 `ally`：双同盟要求场上另外两张同阵营卡（引擎 `allies >= 2`）。脚本把它当成一次额外同盟机会——用 `db.dal` 取双同盟专属效果键（如 fr_hiveQueen 的 `+3 战斗`、fr_ionStation 的 `+4 战斗 +4 权威`），并给 5% 兑现系数反映更高的触发门槛。
+- `moveCard`：见上一节。
+- 带 `choice` 的 `play` / `ability`：`primaryChoice` 二选一，按引擎给出的分支下标取值；分支含 `acquireFreeMax` 时会额外带 `row`，此时按「免费拿到该行牌」计价而不是空转。
+- 带 `row` / `rows` 的动作：`acquireFreeMax`、`acquireCheapFree`（免费获取）、`scrapRowGainCostCombat`（拆行换战斗）、`optionalPrimary.scrapRow`（拆交易行）分别计价；`rows` 多行时逐行累加重掷期望值。
+- 带 `targets` 的动作：`scrapOwn`（销毁己方牌，含 `minScrap` 的「至多 N 张」）、`discardThenDraw`（弃一抽一）、`depot`（弃牌换贸易/战斗，按 `resource` 区分）、`recycle`（弃牌回收抽牌）都按引擎给的目标集合结算。
+- 带 `targetId` 的动作：`destroyBase` 摧毁基地（含 `targetId: null` 表示不指定目标）、`optional` 的 `destroyBase` 摧毁能力，`destroyAndOrScrap` 可同时给 `targetId` 与 `row`。
+- 所有附加字段都原样带回引擎，不自行拼造。
+
+## 四、团队回合结构变化带来的估值调整
+
+| 变化 | 旧脚本假设 | 本版改法 |
+|---|---|---|
+| 起手牌按队发放 | 隐含「每人按模式固定发牌」 | 一律读 `view.players[i].handCount` 实数，不再用固定值推算手牌质量；3 人队里每人 3 或 5 张的差异直接进入 `rateOf()` 的产出估计 |
+| 整队轮流（0→2→4→1→3→5） | 隐含「下一个回合是隔壁座位」 | `teammateActsSoon()` 按同队座位升序判断：只有紧随其后的那位队友能在本轮内用掉我转移的资源，给 1.2 系数；其余队友要等对手队轮完，给 0.7 系数 |
+| 队末才弃手补牌 | 「每回合必定清零的战斗与贸易」在团队模式下变成「队内换人只清本人标记」 | `transfer` 的贸易预留改为看队友实际持有量 + 预留量，避免给已经宽裕的队友继续塞资源 |
+| 队末才清基地伤害 | 「伤害当回合清零，打一半就白打」 | 团队模式下 `scoreAttackBase` 改用 `ctx.teamReachCombat`（我 + 队友的战斗与手牌产出）判断本队能否补刀；命中不了仍保留 18% 残值，因为伤害会留到队友的回合 |
+| 全队共享前哨保护 | 只在 2v2 认定「整队共享护盾」 | 共享权威模式（2v2 / 3v3）统一按整队算护盾归属；拆最后一座前哨的 `gateBonus` 翻倍，因为通道一开对面整队都暴露 |
+
+## 五、取舍与已知弱点
+
+- **策略身份未变**：仍然是「破垒夺权」——先立前哨护住自己，再当回合打光防御值拆掉对方前哨打开权威通道，最后把当回合清零的战斗与贸易全额兑现成权威伤害。本轮只做适配与必要修正，没有更换打法。
+- **弱点一：估值仍是单步贪心**，不搜索两步。战斗与贸易的兑换率、权威血线的边际价值都按静态常量近似，在「差 1 点血线」的临门一脚上可能选错顺序。
+- **弱点二：`hpOf()` 依赖 `view.teams` 的队伍结构**。若某次赛制把共享权威与个人权威混用（例如共享权威模式下 `teams[].authority` 缺失），血线会退回到个人权威的保守读数。
+- **弱点三：大将战的提督对位依赖「队内座位序配对」这一当前实现**。若引擎将来改变配对规则，`eligiblePlayerTargets()` 需要同步调整；好在真正选动作时仍然只认 `legalActions`，估值偏差不会造成非法动作。
+- **弱点四：未知卡的 text 解析是粗估**，遇到没见过的方言写法（例如「每销毁一张获得 N 战斗」这类复合表述）可能低估或高估该卡；好在引擎对未映射的卡不生成，实际暴露的未知卡面有限。
+- **弱点五：`reachCombat` 里队友的手牌产出是粗估**（按 `handCount × 1.5` 估），因为对手手牌在 view 中是隐藏的；这会让「队友能否补刀打死这座基地」的判断偏乐观。
+- **弱点六：`allyReady` 优先读引擎给的 `player.triggered`**，但该字段只有已触发过的卡才是真值；未触发的卡退化为按「场上同阵营牌」的概率估计，对「差一张牌就能触发」的情形会略有偏差。
+- **不追求覆盖一切**：对 `pending` 待决（事件 / 强制弃牌 / 强制销毁）沿用上一版的保守策略——优先保住血线与关键基地，不为小利冒险。

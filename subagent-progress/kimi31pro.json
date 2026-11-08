@@ -1,8 +1,9 @@
 {
   "id": "kimi31pro",
+  "round": "program-update-20261108",
   "status": "completed",
   "progress": 100,
   "phase": "已完成",
-  "note": "自选策略：压缩脉冲；脚本与设计说明已落盘，说明包含指定六节、模型 ID 和策略名，并公开记录经济转战斗、牌库压缩、事件/2V2 取舍与已知弱点。",
-  "updatedAt": "2026-11-05T12:54:37.610Z"
+  "note": "压缩脉冲；out/kimi31pro.js 与 out/kimi31pro.md 已落盘，语法检查和 20 场景接口自检均通过。",
+  "updatedAt": "2026-11-08T15:24:15.177Z"
 }

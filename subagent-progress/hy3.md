@@ -45,3 +45,44 @@
 - **取舍**：放弃纯快攻的极端速度与纯经济的极致展开，换取更稳的续航与更通用的模式 / 扩展兼容；攻击只用于「拆墙 + 抢杀」而非无脑铺战斗，保证每一分战斗都产生确定收益。
 
 设计说明完。脚本路径：`scripts/agent-hy3.js`，零依赖，`node --check` 通过。
+
+
+---
+
+## 附录 · 2026-11-08 按程序更新修订（隔离轮）
+
+执行模型 ID：hy3
+策略名称：协同滚雪球（Synergy Snowball）
+
+## 本次改动点（逐条对应 PROGRAM-UPDATES.md 第 1–6 节）
+
+- **第 1 节（模式 5→7）**：`chooseAction` 不再假设玩家数固定为 2/4。Authority、目标、攻击判定一律读 `view.players[id].authority`（团队模式下该字段由引擎 `syncTeamAuthority` 同步为共享权威，emperor 下读个人权威），因此 7 种模式（含新增 `hydra3`、`emperor`）统一兼容，不再单独写死分支。
+- **第 2 节（团队回合新口径）**：起手牌/整队轮流/队末清算均由引擎处理，脚本只消费 `legalActions`。新增 (a) `transfer` 收尾——把本回合余裕的贸易/战斗 `transfer` 给「下一顺位队友」(`nextTeamTurn` 座位升序)，因为资源会在队友 `beginTurn` 到账；(b) 基地攻击新增「合击」偏好：优先击杀、其次续打 `view.damage` 中已累计伤害的基地（队末才清零，队友可叠加伤害）。
+- **第 3 节（emperor 专属）**：血线与斩杀读 `view.players[id].authority`（`teams[].authority` 为 0，不读它）；直伤只瞄准敌方大将 `enemyEmperorSeat()`（才是胜利条件，且击杀提督会把牌白送敌方大将，故避免）；新增 `moveCard` 兜底（花 1 贸易把弃牌好牌交给相邻队友）。
+- **第 4 节（牌包 3→6 任意组合）**：估值全部基于可见字段与 `text` 解析，不依赖写死卡名表，未映射/未知的 `frontiers`/`crisisFleets`/`crisisBases` 卡也能正常打分；`cardScore`/`primaryValue`/`allyValue` 等对 `set`、`factions`、`cost` 缺失都做了判空。
+- **第 5 节（新卡面方言 → 动作字段）**：`double:true` 的 `ally`、`choice`/`row`/`rows`/`targets`/`targetId` 全部原样从 `legalActions` 带回，不自行拼造；`playValue`/`choiceValue` 正确消费 `choice`，`primaryValue` 对带 `targets`/`rows` 的能力按主效估值；`doubleAlly` 文本含「同盟」会被 `allyValue` 一并计入。
+- **第 6 节（硬性影响）**：覆盖 `view.players.length ∈ {2,3,4,6}` 与队伍人数 2/3；未知动作类型在兜底链末端安全返回 `endTurn` 或 `actions[0]`；整段 `chooseAction` 包 `try/catch`，异常即退回合法动作，绝不抛异常/死循环/写冻结对象；单次决策实测 <1ms。
+
+## 新增 3V3 模式适配
+
+- **hydra3**：与 `team2v2` 同属共享权威队伍模式（`isTeamMode` 为真，权威由引擎同步）。脚本通过 `transfer` 把余裕资源交给下一顺位队友以支撑「整队轮流」节奏；基地合击偏好利用「队末才清伤害」让队友连续打同一座基地。由于 `legalActions` 已按 `canAttackPlayer`/`canTargetBase`/`teamHasOutpost` 过滤，看不到打人动作即代表被前哨保护，脚本不会误判而仍按可行动作择优。
+- **emperor**：个人权威、个人胜负。直伤只打敌方大将（优先斩杀），避免误杀敌方提督反而资敌；识别 `moveCard` 并仅在弃牌中有价值可观的牌时移交相邻队友；血线与斩杀严格读 `view.players[id].authority`，不碰 `teams[].authority`（恒为 0）。
+
+## 新牌包与新动作适配
+
+- 六个牌包任意组合（含仅 `frontiers`、仅 `crisisFleets`、仅 `crisisBases`、全开）：估值不依赖卡名集合，新卡（如 `fr_hiveQueen` 双同盟、`cf_starFortress` 同盟弃抽、`cb_obliterator` 依敌基地数加战斗）均经 `text`/`factions`/`cost`/`defense` 通用解析。
+- `double:true` 的 `ally`：双同盟文本含「同盟」，被 `allyValue` 正常计入，旧脚本无需理解新键即可正确发动。
+- 带 `choice` 的 play（`primaryChoice`）→ `choiceValue` 选最优分支；带 `row`/`rows` 的 play/ability（`acquireCheapFree`/`scrapRowGainCostCombat`/`optionalPrimary.scrapRow`）原样返回；带 `targets` 的 ability（`scrapOwn`/`discardThenDraw`/`depot`/`recycle`）按主效估值；`destroyBase` 带 `targetId` 原样返回。
+- `moveCard`：emperor 兜底移交弃牌好牌给相邻队友，仅当该牌 `cardScore ≥ 1` 才执行，避免塞垃圾。
+- 未知动作类型：末端安全兜底返回合法动作引用。
+
+## 团队回合结构变化带来的估值调整
+
+- **整队轮流**：资源能「跨人」到账，故加入 `chooseTransfer` 在收尾阶段把余裕 `trade`/`combat` 交给 `nextTeamTurn` 顺序下的下一队友；不抢在出牌/购买之前转移，避免自断节奏。
+- **队末清算**： damage 在队末清零，故 `pickBaseAttack` 优先续打已带 `view.damage` 的基地，放大队友合击；不把「换人即清伤害」当假设。
+- **起手牌**：偶数座位 3 张、奇数 5 张（2v2 `[3,3,5,5]`，6 人 `[3,3,3,5,5,5]`）由引擎发放，脚本不依赖具体手牌数，仅按 `hand`/`handCount` 可见信息处理。
+
+## 取舍与已知弱点
+
+- 取舍：坚持「同盟滚雪球 + 拆前哨后直伤」母策略，只做适配与必要修正，不重写打法；把改动集中在安全兜底、团队资源结转、emperor 大将优先与 `moveCard` 上，风险最低。
+- 已知弱点：(1) `moveCard` 仅按单卡 `cardScore` 粗略判断移交价值，未建模「队友接下来能打的牌」；当弃牌全是低价值牌时策略偏保守不交牌，可能略损团队节奏。(2) `transfer` 用「座位升序下一队友」近似 `nextTeamTurn`，在交替座位且多人阵亡的边界下未必是紧邻行动者，但绝不会越界到敌方。(3) 对 `primaryChoice` 多分支只取文本数值估值，未模拟「本回合已打阵营数」等联动（如 `blobWorld` 抽牌），属保守近似。(4) 事件选择仅按卡牌价值贪心，未建模全局 Authority 曲线。

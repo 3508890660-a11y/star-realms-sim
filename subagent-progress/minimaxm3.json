@@ -1,8 +1,9 @@
 {
   "id": "minimaxm3",
+  "round": "program-update-20261108",
   "status": "completed",
   "progress": 100,
   "phase": "已完成",
-  "note": "自选策略：壁垒重锤；脚本与设计说明已落盘",
-  "updatedAt": "2026-11-05T12:56:11.144Z"
+  "note": "壁垒重锤（Bastion & Hammer）；out/minimaxm3.js 与 out/minimaxm3.md 已落盘，策略名与核心思路保持不变，仅按 2026-11-08 版程序做适配与必要估值修正",
+  "updatedAt": "2026-11-08T14:46:12.618Z"
 }

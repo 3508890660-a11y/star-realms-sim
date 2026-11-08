@@ -1,15 +1,18 @@
 // ============================================================
 // 策略名称：蜂群速攻（Blitz Swarm）
-// 选择理由（一句话）：1v1 权威池仅 50 且回复手段稀少，战斗输出是最直接、
+// 选择理由（一句话）：权威池有限且回复稀少，战斗输出是最直接、
 //   可逐回合累计的获胜资源；以「每回合战斗最大化 + 持续削薄牌库」速攻压制，
 //   比慢速贸易积累更稳定地终结对手。
+// 本轮更新：按 PROGRAM-UPDATES 第 1–6 节适配——覆盖 7 模式与 6 牌包任意组合、
+//   团队整队轮流与队末清算口径、大将战（个人权威 + moveCard + 敌大将斩杀优先）、
+//   double:true 同盟与 choice/row/rows/targets/resource 新动作字段全部打分兜底。
 // 执行模型 ID：kimi-k2.8-preview
 // 零依赖：不使用 import / require，只依据 legalActions 与 view 决策。
 // ============================================================
 
 export const meta = {
   name: 'KIMI 2.8preview · 蜂群速攻',
-  description: 'kimi-k2.8-preview 策略「蜂群速攻」：1v1 权威池仅 50 且回复稀少，优先打光手牌堆战斗输出、持续 scrap 削薄牌库，速攻压制快速终结对手。'
+  description: 'kimi-k2.8-preview 策略「蜂群速攻」：权威池有限且回复稀少，优先打光手牌堆战斗输出、持续 scrap 削薄牌库，速攻压制快速终结对手；新版已适配 7 模式、6 牌包与全部新动作字段。'
 };
 
 // ---------- 卡牌知识 ----------
@@ -17,7 +20,8 @@ export const meta = {
 // 初始牌与低价值牌（削牌/弃牌时优先处理）
 const JUNK = { scout: 1.0, viper: 0.4 };
 
-// 各卡「销毁能力」的效果（key 为卡牌 id），用于判断何时主动销毁
+// 各卡「销毁能力」的效果（key 为卡牌 id），用于判断何时主动销毁；
+// 仅作加成提示，未知卡一律回退到通用文本评分
 const SCRAP_FX = {
   explorer: { combat: 2 },
   battleStation: { combat: 5 },
@@ -51,7 +55,7 @@ const num = (text, re) => {
   return sum;
 };
 
-// 通用卡牌评分：由规则文本数值 + 类型/前哨/关键词得出，全牌池通用
+// 通用卡牌评分：由规则文本数值 + 类型/前哨/关键词得出，全牌池（core 到 crisisBases）通用
 function cardScore(c) {
   if (!c) return 0;
   if (JUNK[c.id] !== undefined) return JUNK[c.id];
@@ -84,10 +88,12 @@ function buildCtx(view, playerId, cardOf) {
   const rowCards = row.map(uid => cardOf(uid)).filter(Boolean);
   return {
     me,
+    view,
     myTrade: me.trade || 0,
     myCombat: me.combat || 0,
     myAuth: typeof me.authority === 'number' ? me.authority : 50,
     rowCards,
+    viewRow: r => (view.tradeRow || [])[r],
     affordableGood: extra => rowCards.some(c =>
       c.cost !== null && c.cost !== undefined && c.cost <= (me.trade || 0) + extra && cardScore(c) >= 4),
     goodFreeAcquire: rowCards.some(c =>
@@ -118,6 +124,8 @@ function wantChoice(c, a, ctx) {
       return (a.choice === 1) === (ctx.blobPlayed >= 3);
     case 'parasite': // 6 战斗 / 免费获得 ≤6 的牌
       return a.choice === 1 ? ctx.goodFreeAcquire : true;
+    case 'fr_outlandStation': // 1 贸易 / 3 权威
+      return (a.choice === 0) === (ctx.myAuth > 25);
     default:
       return (a.choice || 0) === 0;
   }
@@ -125,7 +133,7 @@ function wantChoice(c, a, ctx) {
 
 // ---------- 待决事件 ----------
 
-function pickEvent(actions, view, playerId, cardOf, me, authorityOf) {
+function pickEvent(actions, view, playerId, cardOf, me) {
   const pending = (view && view.pending) || {};
   const kind = pending.kind;
   if (kind === 'blackHole') { // 每少弃一张失 4 权威
@@ -182,23 +190,33 @@ function targetValue(a, cardOf) {
   return (a.targets || []).reduce((s, u) => s + (6 - cardScore(cardOf(u))), 0);
 }
 
+function rowValue(rowIdx, ctx, cardOf) {
+  const c = cardOf(ctx.viewRow(rowIdx));
+  if (!c) return 0;
+  // 免费获取/按费用得战斗：收益至少是费用本身，高价值卡更高
+  return Math.max(cardScore(c), (c.cost || 0) * 0.9);
+}
+
 function pickAbility(list, ctx, cardOf) {
   let best = null;
   let bestV = -Infinity;
   for (const a of list) {
     let v = 3; // 普通资源/抽牌能力
+    if (a.double) v += 1; // 双同盟视为一次额外同盟机会，通常更强
     if (a.choice !== undefined) {
       const c = cardOf(a.cardId);
       if (!wantChoice(c, a, ctx)) v = -50;
     }
     if (a.targets) {
-      if (!a.targets.length) continue; // 空目标（如补给站不 discard）无收益
+      if (!a.targets.length) continue; // 空目标（如补给站不 discard / depot 不弃牌）无收益
       v = targetValue(a, cardOf);
     }
-    if (a.row !== undefined) v += cardScore(cardOf(ctx.viewRow(a.row)));
+    if (a.row !== undefined) v += rowValue(a.row, ctx, cardOf);
     if (a.rows) {
-      for (const r of a.rows) v += cardScore(cardOf(ctx.viewRow(r)));
+      for (const r of a.rows) v += rowValue(r, ctx, cardOf);
     }
+    if (a.resource === 'combat') v += 1.5; // depot 倾向换战斗（速攻）
+    else if (a.resource) v += 0.5;
     if (a.targetId) v += 6 + cardScore(cardOf(a.targetId));
     if (v > bestV) { bestV = v; best = a; }
   }
@@ -212,7 +230,7 @@ function pickOptional(list, ctx, cardOf, view, playerId, minEnemyAuth) {
   let bestV = 0;
   const row = view.tradeRow || [];
   for (const a of list) {
-    if (a.targets) { // scrapOwn：有垃圾才发动
+    if (a.targets) { // scrapOwn / minScrap：有垃圾才发动
       const v = targetValue(a, cardOf);
       if (v > bestV && (a.targets || []).some(u => isJunkUid(u, cardOf))) { bestV = v; best = a; }
     } else if (a.row !== undefined || a.rows) { // 销毁交易行：拦截对手买得起的好牌
@@ -223,8 +241,8 @@ function pickOptional(list, ctx, cardOf, view, playerId, minEnemyAuth) {
         if (c && c.cost >= 3 && cardScore(c) >= 4.5 && c.cost > ctx.myTrade) v += cardScore(c);
       }
       if (v > bestV) { bestV = v; best = a; }
-    } else if (a.targetId) { // 摧毁基地：优先前哨或终局
-      const c = cardOf(a.targetId);
+    } else if (a.targetId || a.targetId === null) { // 摧毁基地：优先前哨或终局
+      const c = a.targetId ? cardOf(a.targetId) : null;
       const v = c && c.outpost ? 8 + cardScore(c) : (c ? cardScore(c) : 0);
       if (v > bestV && c && (c.outpost || minEnemyAuth <= 14 || (c.defense || 99) <= 4)) { bestV = v; best = a; }
     }
@@ -275,6 +293,8 @@ function pickScrapAbility(list, view, playerId, cardOf, ctx, minEnemyAuth) {
       }
       if (isShip && fx.draw) return a; // 飞船反正回合末弃掉，顺带抽牌
     }
+    // 未知销毁卡：飞船回合末本会进弃牌堆，主动销毁等于免费削牌库
+    if (isShip && !fx.draw && !fx.destroyBase && cardScore(c) <= 4 && minEnemyAuth <= 30) return a;
   }
   return null;
 }
@@ -301,14 +321,36 @@ function pickPlay(plays, ctx, cardOf) {
     let v = cardScore(c);
     if (a.copy) v += cardScore(cardOf(a.copy)) * 0.9; // 复制舰/复制基地
     if (a.choice !== undefined && !wantChoice(c, a, ctx)) v -= 50;
+    if (a.row !== undefined) v += rowValue(a.row, ctx, cardOf); // 免费获取/销毁交易行得战斗
     if (v > bestV) { bestV = v; best = a; }
   }
   return best || plays[0];
 }
 
+// ---------- 团队辅助 ----------
+
+// 同队队友（座位升序）；团队模式与大将军模式都按 team 字段分组
+function teammatesOf(view, playerId) {
+  const players = view.players || [];
+  const me = players[playerId];
+  if (!me || me.team === null || me.team === undefined) return [];
+  return players
+    .filter(p => p && p.team === me.team && p.id !== playerId && !p.eliminated)
+    .map(p => p.id)
+    .sort((x, y) => x - y);
+}
+
+// 我之后队内下一个行动的队友（整队轮流：资源移交给他当回合就能用）
+function nextTeammate(view, playerId) {
+  const mates = teammatesOf(view, playerId);
+  if (!mates.length) return null;
+  for (const id of mates) if (id > playerId) return id;
+  return mates[0];
+}
+
 // ---------- 主决策 ----------
 
-export async function chooseAction({ view, legalActions, playerId, random, memory, context }) {
+function decide({ view, legalActions, playerId, random }) {
   if (!Array.isArray(legalActions) || legalActions.length === 0) return undefined;
   if (!view || !view.players) return legalActions[0];
 
@@ -317,14 +359,14 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
   const ofType = t => legalActions.filter(a => a.type === t);
   const endTurn = ofType('endTurn')[0] || null;
 
-  const enemyIds = players.filter(p => p && p.id !== playerId && !p.eliminated).map(p => p.id);
-  const authorityOf = id => {
-    if (view.teams && view.teams.length) {
-      const team = view.teams.find(t => (t.players || []).includes(id));
-      if (team) return team.authority;
-    }
-    return players[id] && typeof players[id].authority === 'number' ? players[id].authority : 999;
-  };
+  // 团队/大将模式按 team 字段区分敌我；权威一律读个人（emperor 的 teams[].authority 为 0）
+  const teamGame = Array.isArray(view.teams) && view.teams.length > 0;
+  const myTeam = players[playerId] ? players[playerId].team : null;
+  const enemyIds = players
+    .filter(p => p && p.id !== playerId && !p.eliminated && (!teamGame || p.team !== myTeam))
+    .map(p => p.id);
+  const authorityOf = id =>
+    players[id] && typeof players[id].authority === 'number' ? players[id].authority : 999;
   const weakestEnemy = () => {
     if (!enemyIds.length) return -1;
     return enemyIds.reduce((a, b) => (authorityOf(a) <= authorityOf(b) ? a : b));
@@ -332,7 +374,11 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
   const minEnemyAuth = enemyIds.length ? authorityOf(weakestEnemy()) : 999;
   const me = players[playerId] || {};
   const ctx = buildCtx(view, playerId, cardOf);
-  ctx.viewRow = r => (view.tradeRow || [])[r];
+
+  // 敌方大将（emperor）：击败即整队判负，斩杀优先最高
+  const emperorIds = Array.isArray(view.emperors) ? view.emperors : [];
+  const enemyEmperor = emperorIds.find(e =>
+    players[e] && !players[e].eliminated && (!teamGame || players[e].team !== myTeam));
 
   // ===== 1. 待决决策 =====
   const t0 = legalActions[0].type;
@@ -356,7 +402,7 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
     }
     return best;
   }
-  if (t0 === 'eventChoice') return pickEvent(legalActions, view, playerId, cardOf, me, authorityOf);
+  if (t0 === 'eventChoice') return pickEvent(legalActions, view, playerId, cardOf, me);
   // 未知待决类型：兜底第一个（一定合法）
   if (!ofType('play').length && !ofType('buy').length && !ofType('attack').length && !endTurn) {
     return legalActions[0];
@@ -366,10 +412,18 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
 
   // ===== 2. 斩杀检测 =====
   if (attacks.length && enemyIds.length) {
+    // 大将战：能斩敌方大将就直接终结比赛
+    if (enemyEmperor !== undefined && enemyEmperor !== null) {
+      const eAuth = authorityOf(enemyEmperor);
+      const emperorLethal = attacks.filter(a =>
+        a.targetType === 'player' && a.targetId === enemyEmperor && a.amount >= eAuth);
+      if (emperorLethal.length) return emperorLethal.reduce((x, y) => (x.amount >= y.amount ? x : y));
+    }
     const weakest = weakestEnemy();
     const wAuth = authorityOf(weakest);
     const lethal = attacks.filter(a => a.targetType === 'player' && a.targetId === weakest && a.amount >= wAuth);
     if (lethal.length) return lethal.reduce((x, y) => (x.amount >= y.amount ? x : y));
+    // firstBlood 中我的唯一攻击目标被我击杀时，其右手边玩家（即我）立即获胜，斩杀同样最优
   }
 
   // ===== 3. 出牌 =====
@@ -411,9 +465,12 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
   if (attacks.length && enemyIds.length) {
     const playerActs = attacks.filter(a => a.targetType === 'player');
     if (playerActs.length) {
-      // 集中火力打权威最低的对手
-      let target = weakestEnemy();
-      if (!playerActs.some(a => a.targetId === target)) {
+      // 集中火力：大将战偏向敌大将（击败即胜），其余打权威最低的可打目标
+      let target = null;
+      if (enemyEmperor !== undefined && enemyEmperor !== null &&
+          playerActs.some(a => a.targetId === enemyEmperor)) {
+        target = enemyEmperor;
+      } else {
         target = playerActs[0].targetId;
         for (const a of playerActs) {
           if (authorityOf(a.targetId) < authorityOf(target)) target = a.targetId;
@@ -422,7 +479,7 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
       const opts = playerActs.filter(a => a.targetId === target);
       return opts.reduce((x, y) => (x.amount >= y.amount ? x : y));
     }
-    // 前哨阻挡：能击杀就击杀，否则磨最高价值前哨
+    // 前哨阻挡：能击杀就击杀（伤害整队回合内累计，可和队友合击），否则磨最高价值前哨
     const damage = view.damage || {};
     const finishing = attacks.filter(a => {
       const c = cardOf(a.targetId);
@@ -438,9 +495,48 @@ export async function chooseAction({ view, legalActions, playerId, random, memor
     return best;
   }
 
-  // ===== 7. 结束回合 / 兜底 =====
+  // ===== 7. 团队移交 / 大将战移牌（本回合用不掉的资源给队友） =====
+  if (enemyIds.length) {
+    const mate = nextTeammate(view, playerId);
+    if (mate !== null && mate !== undefined) {
+      const transfers = ofType('transfer');
+      if (transfers.length) {
+        // 走到这里说明没有可用攻击：余下战斗本会浪费，全部预留给紧接着行动的队友
+        if ((me.combat || 0) > 0) {
+          const cbt = transfers.filter(a => a.resource === 'combat' && a.amount >= (me.combat || 0));
+          if (cbt.length) return cbt[0];
+        }
+        // 余钱买不动任何东西时，贸易也可移交给队友（不买垃圾的原则一致）
+        if ((me.trade || 0) >= 2) {
+          const trd = transfers.filter(a => a.resource === 'trade' && a.amount >= (me.trade || 0));
+          if (trd.length) return trd[0];
+        }
+      }
+      const moves = ofType('moveCard'); // 大将战：1 贸易把弃牌堆好牌交给相邻队友
+      if (moves.length && (me.trade || 0) >= 1) {
+        let best = null;
+        let bestV = 5; // 阈值：明显的好牌才值得花 1 贸易移交
+        for (const a of moves) {
+          const v = cardScore(cardOf(a.cardId));
+          if (v > bestV) { bestV = v; best = a; }
+        }
+        if (best) return best;
+      }
+    }
+  }
+
+  // ===== 8. 结束回合 / 兜底 =====
   if (endTurn) return endTurn;
-  // 未知主阶段动作（未来扩展）：随机挑一个非结束动作，保证不死循环
-  const others = legalActions.filter(a => a.type !== 'endTurn');
-  return others.length ? others[Math.floor((random ? random() : Math.random()) * others.length)] : legalActions[0];
+  return legalActions[0];
+}
+
+export async function chooseAction({ view, legalActions, playerId, random, memory, context }) {
+  try {
+    const result = decide({ view, legalActions, playerId, random });
+    if (result !== undefined) return result;
+  } catch (e) {
+    // 估值异常：退回安全兜底
+  }
+  const end = Array.isArray(legalActions) ? legalActions.find(a => a.type === 'endTurn') : null;
+  return end || (Array.isArray(legalActions) ? legalActions[0] : undefined);
 }

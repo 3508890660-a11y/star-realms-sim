@@ -1,8 +1,9 @@
 {
   "id": "glm53",
+  "round": "program-update-20261108",
   "status": "completed",
   "progress": 100,
   "phase": "已完成",
-  "note": "自选策略：曲线竞速；脚本 scripts/agent-glm53.js 与设计说明 subagent-progress/glm53.md 已落盘",
-  "updatedAt": "2026-11-05T12:55:28.199Z"
+  "note": "曲线竞速（Curve Race）；脚本 out/glm53.js 与更新说明 out/glm53.md 已落盘并全部通过校验",
+  "updatedAt": "2026-11-08T14:27:13.229Z"
 }

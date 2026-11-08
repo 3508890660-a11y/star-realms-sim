@@ -1,19 +1,26 @@
 {
-  "title": "12 模型 AI 脚本工厂 · 自由策略轮",
-  "note": "本轮策略由各模型自行设计，主代理未指定任何打法方向；modelId 为已验证生效的真实模型 ID。看板只展示任务状态与公开设计说明，不展示内部推理。",
-  "strategyMode": "freeform",
+  "title": "12 模型 AI 脚本工厂 · 按程序更新重启（隔离轮）",
+  "note": "本轮为全新隔离会话：12 个 subagent 只拿到 2026-11-08 版程序更新说明、脚本接口、规则内核副本与各自上一版脚本，看不到任何历史对局数据、胜率、排名、赛果或其它模型的脚本；策略身份保持不变，只做规则适配。modelId 为会话日志复验的真实请求模型 ID（12/12 生效，无静默回退）。看板只展示任务状态与公开设计说明，不展示内部推理。",
+  "strategyMode": "program-update",
+  "round": "program-update-2026-11-08",
+  "refreshedAt": "2026-11-08T16:18:00.000Z",
+  "isolation": {
+    "workspace": "项目外的隔离目录，仅含三份说明、6 个规则内核副本、各模型自己的旧脚本与两个校验工具",
+    "excluded": ["reply/", "tournaments/", "test-artifacts/", "video/", "README.md 结果章节", "TIMELINE.md", "历史设计说明", "其它模型的脚本"],
+    "progress": "进度写入隔离目录后同步回 subagent-progress/*.json"
+  },
   "agents": [
-    { "id": "hy4", "model": "hy4", "modelId": "hy4std", "modelVerified": true, "strategyMode": "freeform", "name": "薄牌护城河", "strategy": "模型自选：薄牌护城河", "file": "scripts/agent-hy4.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "hy3", "model": "hy3", "modelId": "hy3", "modelVerified": true, "strategyMode": "freeform", "name": "协同滚雪球", "strategy": "模型自选：协同滚雪球", "file": "scripts/agent-hy3.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "glm53", "model": "GLM5.3", "modelId": "glm-5.3", "modelVerified": true, "strategyMode": "freeform", "name": "曲线竞速", "strategy": "模型自选：曲线竞速（Curve Race）", "file": "scripts/agent-glm53.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "glm53flash", "model": "GLM5.3flash", "modelId": "glm-5.3-flash", "modelVerified": true, "strategyMode": "freeform", "name": "精炼雪球", "strategy": "模型自选：精炼雪球（Refined Snowball）", "file": "scripts/agent-glm53flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "minimaxm3", "model": "MiniMax M3", "modelId": "minimax-m3-pay", "modelVerified": true, "strategyMode": "freeform", "name": "壁垒重锤", "strategy": "模型自选：壁垒重锤", "file": "scripts/agent-minimaxm3.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "minimaxm31flash", "model": "MiniMax M3.1flash", "modelId": "minimax-m3.1-flash", "modelVerified": true, "strategyMode": "freeform", "name": "破垒夺权", "strategy": "模型自选：破垒夺权", "file": "scripts/agent-minimaxm31flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "kimi31pro", "model": "KIMI 3.1pro", "modelId": "kimi-k3.1-pro", "modelVerified": true, "strategyMode": "freeform", "name": "压缩脉冲", "strategy": "模型自选：压缩脉冲", "file": "scripts/agent-kimi31pro.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "kimi28preview", "model": "KIMI 2.8preview", "modelId": "kimi-k2.8-preview", "modelVerified": true, "strategyMode": "freeform", "name": "蜂群速攻", "strategy": "模型自选：蜂群速攻（Blitz Swarm）", "file": "scripts/agent-kimi28preview.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "deepseekv41flash", "model": "deepseek v4.1flash", "modelId": "deepseek-v4.1-flash", "modelVerified": true, "strategyMode": "freeform", "name": "三段涨潮", "strategy": "模型自选：三段涨潮", "file": "scripts/agent-deepseekv41flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "deepseekv4pro", "model": "deepseek v4pro", "modelId": "deepseek-v4-pro", "modelVerified": true, "strategyMode": "freeform", "name": "价值节奏快攻", "strategy": "模型自选：价值节奏快攻（Tempo-Value Aggro）", "file": "scripts/agent-deepseekv4pro.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "step5preview", "model": "step5preview", "modelId": "step-5-preview", "modelVerified": true, "strategyMode": "freeform", "name": "雪球收割", "strategy": "模型自选：雪球收割（Snowball-Reap）", "file": "scripts/agent-step5preview.js", "status": "completed", "phase": "已完成", "progress": 100 },
-    { "id": "mimov26pro", "model": "MIMO-v2.6-pro", "modelId": "mimo-v2.6-pro", "modelVerified": true, "strategyMode": "freeform", "name": "闪电压制", "strategy": "模型自选：闪电压制", "file": "scripts/agent-mimov26pro.js", "status": "completed", "phase": "已完成", "progress": 100 }
+    { "id": "hy4", "model": "hy4", "modelId": "hy4std", "modelVerified": true, "strategyMode": "program-update", "name": "薄牌护城河", "strategy": "模型自选：薄牌护城河", "file": "scripts/agent-hy4.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "hy3", "model": "hy3", "modelId": "hy3", "modelVerified": true, "strategyMode": "program-update", "name": "协同滚雪球", "strategy": "模型自选：协同滚雪球", "file": "scripts/agent-hy3.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "glm53", "model": "GLM5.3", "modelId": "glm-5.3", "modelVerified": true, "strategyMode": "program-update", "name": "曲线竞速", "strategy": "模型自选：曲线竞速（Curve Race）", "file": "scripts/agent-glm53.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "glm53flash", "model": "GLM5.3flash", "modelId": "glm-5.3-flash", "modelVerified": true, "strategyMode": "program-update", "name": "精炼雪球", "strategy": "模型自选：精炼雪球（Refined Snowball）", "file": "scripts/agent-glm53flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "minimaxm3", "model": "MiniMax M3", "modelId": "minimax-m3-pay", "modelVerified": true, "strategyMode": "program-update", "name": "壁垒重锤", "strategy": "模型自选：壁垒重锤", "file": "scripts/agent-minimaxm3.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "minimaxm31flash", "model": "MiniMax M3.1flash", "modelId": "minimax-m3.1-flash", "modelVerified": true, "strategyMode": "program-update", "name": "破垒夺权", "strategy": "模型自选：破垒夺权", "file": "scripts/agent-minimaxm31flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "kimi31pro", "model": "KIMI 3.1pro", "modelId": "kimi-k3.1-pro", "modelVerified": true, "strategyMode": "program-update", "name": "压缩脉冲", "strategy": "模型自选：压缩脉冲", "file": "scripts/agent-kimi31pro.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "kimi28preview", "model": "KIMI 2.8preview", "modelId": "kimi-k2.8-preview", "modelVerified": true, "strategyMode": "program-update", "name": "蜂群速攻", "strategy": "模型自选：蜂群速攻（Blitz Swarm）", "file": "scripts/agent-kimi28preview.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "deepseekv41flash", "model": "deepseek v4.1flash", "modelId": "deepseek-v4.1-flash", "modelVerified": true, "strategyMode": "program-update", "name": "三段涨潮", "strategy": "模型自选：三段涨潮", "file": "scripts/agent-deepseekv41flash.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "deepseekv4pro", "model": "deepseek v4pro", "modelId": "deepseek-v4-pro", "modelVerified": true, "strategyMode": "program-update", "name": "价值节奏快攻", "strategy": "模型自选：价值节奏快攻（Tempo-Value Aggro）", "file": "scripts/agent-deepseekv4pro.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "step5preview", "model": "step5preview", "modelId": "step-5-preview", "modelVerified": true, "strategyMode": "program-update", "name": "雪球收割", "strategy": "模型自选：雪球收割（Snowball-Reap）", "file": "scripts/agent-step5preview.js", "status": "completed", "phase": "已完成", "progress": 100 },
+    { "id": "mimov26pro", "model": "MIMO-v2.6-pro", "modelId": "mimo-v2.6-pro", "modelVerified": true, "strategyMode": "program-update", "name": "闪电压制", "strategy": "模型自选：闪电压制", "file": "scripts/agent-mimov26pro.js", "status": "completed", "phase": "已完成", "progress": 100 }
   ]
 }

@@ -1,8 +1,9 @@
 {
   "id": "step5preview",
+  "round": "program-update-20261108",
   "status": "completed",
   "progress": 100,
   "phase": "已完成",
-  "note": "自选策略：雪球收割；脚本 scripts/agent-step5preview.js 与设计说明 subagent-progress/step5preview.md 已落盘",
-  "updatedAt": "2026-11-05T12:59:25.581Z"
+  "note": "策略名：雪球收割（Snowball-Reap）；脚本 out/step5preview.js 与更新说明 out/step5preview.md 已落盘；node --check 与 selfcheck 均通过（20 场景 60 次调用 ok=true maxMs=2.4）；未接触任何历史对局结果",
+  "updatedAt": "2026-11-08T16:04:32.999Z"
 }
