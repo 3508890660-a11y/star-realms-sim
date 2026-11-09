@@ -716,3 +716,9 @@ node tools/build-extra-expansions.mjs "…/sr_all_cards.json"   # 仅在扩充�
 - 12 份更新说明是模型主动写下的**公开设计说明**，不是内部推理；看板只展示可审阅内容。
 - 大将战 1 贸易移牌允许任意队友（官方限「相邻队友」）这一遗留偏差未改，已在第 16.6 节记录，本轮脚本按当前引擎行为适配。
 
+### 17.6 调整报告与一处口径补正（2026-11-09）
+
+《12 个 subagent 按程序更新修订脚本 · 调整报告》：`reply/star-realms-agent-refresh-report.md`（人读）与 `reply/star-realms-agent-refresh-report.json`（机读）。报告只归纳「脚本怎么改」——程序更新 6 类挑战、12 份脚本的客观 diff 与适配覆盖矩阵、逐模型三条主改动、共性调整与分歧点、校验与边界；**不含任何胜率、排名或赛果**。
+
+**口径补正**：整理报告时复核发现，隔离简报 `tools/agent-refresh-updates.md` 第 2 节把「前哨护盾按整队」概括在涵盖 `emperor` 的小节下，与引擎不完全一致。`engine.js` 的 `teamHasOutpost()` 仅对 `isTeamMode()`（`team2v2` / `hydra3`）按整队判定，**`emperor` 按个人判定**。影响只到估值层：12 份脚本的实际目标都取自 `legalActions`，引擎已按正确口径过滤，因此不产生非法动作、不影响对局结束。正确落地该区别的是 `minimaxm31flash`（`MODE_CFG.emperor.shieldTeam = false`）与 `step5preview`（明确 emperor 前哨看个人）；其余脚本多为泛化表述，留待下一轮复核。简报保持原样存档，作为当时的真实输入证据。
+

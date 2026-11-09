@@ -1,0 +1,251 @@
+{
+  "report": "12 个 subagent 按程序更新修订脚本 · 调整报告",
+  "file": "reply/star-realms-agent-refresh-report.md",
+  "round": "program-update-2026-11-08",
+  "generatedAt": "2026-11-09T09:20:00+08:00",
+  "scope": "只描述脚本如何按程序更新做适配",
+  "containsMatchResults": false,
+  "tournamentsRerun": false,
+  "dataSources": [
+    "隔离目录 out/<id>.md 的 12 份公开更新说明",
+    "修订后 scripts/agent-*.js 与修订前 scripts/_backup-pre-refresh-20261108/agent-*.js 的 diff",
+    "12 份 subagent 完成汇报",
+    "src/engine/{engine,cards,modes,expansions,expansions-extra}.js",
+    "test/agent-refresh.test.js 与 npm test 输出"
+  ],
+  "excludedSources": [
+    "reply/star-realms-* 赛果报告",
+    "tournaments/*",
+    "test-artifacts/*",
+    "video/*",
+    "B 站文案",
+    "旧设计说明里的模型自测数字"
+  ],
+  "engineFacts": {
+    "modes": 7,
+    "expansionPacks": 6,
+    "cardDefinitions": 155,
+    "tradePacksTotalCards": 268,
+    "newPackKinds": { "frontiers": 42, "crisisFleets": 7, "crisisBases": 6 },
+    "newPackCards": { "frontiers": 75, "crisisFleets": 11, "crisisBases": 10 },
+    "newPackTotals": { "kinds": 55, "cards": 96 },
+    "emperorTeamAuthority": 0,
+    "teamWideOutpostShield": ["team2v2", "hydra3"],
+    "perPlayerOutpostShield": ["standard", "ffa", "hunter", "firstBlood", "emperor"]
+  },
+  "programUpdates": [
+    {
+      "id": 1,
+      "change": "模式 5→7，新增 hydra3 / emperor，人数 2/3/4/6",
+      "engineEvidence": "src/engine/modes.js 的 MODES / TEAM_SPECS",
+      "response": "动态读 view.players.length / team / mode / emperors，删掉 2 人或 4 人写死假设",
+      "coverage": "12/12"
+    },
+    {
+      "id": 2,
+      "change": "起手牌按队发放、整队轮流、队末才清算",
+      "engineEvidence": "engine.js 的 setup() / endTurn()；modes.js 的 nextTeamTurn()",
+      "response": "transfer 改为紧接着行动的队友回合到账；基地伤害可跨人累计；节奏按轮重标",
+      "coverage": "12/12（11 份读 view.damage，hy4 用后续队友数启发式）"
+    },
+    {
+      "id": 3,
+      "change": "大将战权威在个人、目标受对位限制",
+      "engineEvidence": "modes.js 的 canAttackPlayer / canTargetBase / oppositeSeat",
+      "response": "血线读 view.players[targetId].authority；目标只信 legalActions；斩将优先",
+      "coverage": "12/12"
+    },
+    {
+      "id": 4,
+      "change": "牌包 3→6，可任意组合",
+      "engineEvidence": "cards.js 的 EXPANSION_PACKS / CARD_DEFS",
+      "response": "未知卡走可见字段 + text 通用估值，写死表降级为加成",
+      "coverage": "12/12"
+    },
+    {
+      "id": 5,
+      "change": "新动作方言与附加字段",
+      "engineEvidence": "engine.js 的 legalActions() 的 play / ability / moveCard",
+      "response": "附加字段只打分、原样返回；moveCard 独立分支；double:true 作额外同盟机会；未知动作兜底",
+      "coverage": "12/12"
+    },
+    {
+      "id": 6,
+      "change": "接口契约未变（零依赖 / 深冻结 / 3000ms）",
+      "engineEvidence": "runner.step() / loader.deepFreeze()",
+      "response": "不 sort 原数组、不写冻结对象、try/catch 兜底、返回同一对象引用",
+      "coverage": "12/12"
+    }
+  ],
+  "aggregate": {
+    "agents": 12,
+    "oldLines": 6598,
+    "newLines": 9208,
+    "netLines": 2610,
+    "lineGrowthPct": 39.6,
+    "addedLines": 3848,
+    "removedLines": 1238,
+    "oldBytes": 264792,
+    "newBytes": 396257,
+    "byteGrowthPct": 49.6,
+    "metaNameUnchanged": 12,
+    "strategyIdentityPreserved": 12
+  },
+  "coverage": {
+    "moveCard": { "old": 0, "new": 12 },
+    "doubleAlly": { "old": 0, "new": 12, "explicitScoring": 10, "transparentPassThrough": 2 },
+    "viewEmperors": { "old": 0, "new": 12 },
+    "cardTextParsing": { "old": 6, "new": 12 },
+    "transfer": { "old": 10, "new": 12 },
+    "teamFieldGrouping": { "old": 7, "new": 11, "exception": "deepseekv4pro 只信 legalActions" },
+    "viewDamage": { "old": 8, "new": 11, "exception": "hy4 用后续队友人数估算" },
+    "literalHydra3": { "old": 0, "new": 4, "note": "其余 8 份用 team 字段泛化" },
+    "literalEmperor": { "old": 0, "new": 11, "note": "kimi28preview 用 view.emperors 判定" }
+  },
+  "agents": [
+    {
+      "id": "hy4", "model": "hy4", "modelId": "hy4std", "strategy": "薄牌护城河",
+      "oldLines": 320, "newLines": 376, "netLines": 56, "addedLines": 127, "removedLines": 71,
+      "metaNameUnchanged": true,
+      "changes": ["team 字段动态分敌友 + 全场最高权威做相对血线，修掉把队友算进对手", "hydra3 共享权威/队末合击 与 emperor 个人权威/斩将加权/moveCard 分别适配", "六牌包用可见字段加 text 通用估值，显式处理 double:true 与全部新动作字段"],
+      "distinctive": "不读 view.damage，改用后续行动队友人数估算合击价值",
+      "weakness": "条件卡面按中文正则近似；相对血线在有人被削血、第三方满血时偏保守"
+    },
+    {
+      "id": "hy3", "model": "hy3", "modelId": "hy3", "strategy": "协同滚雪球",
+      "oldLines": 387, "newLines": 498, "netLines": 111, "addedLines": 193, "removedLines": 82,
+      "metaNameUnchanged": true,
+      "changes": ["删掉 2/4 人假设，权威一律读 players[].authority", "emperor 只斩敌方大将并移交弃牌好牌；收尾 transfer 给下一顺位队友、基地优先续打已有伤害", "text/factions/cost 通用解析，double 与全部新字段透明透传，整段 try/catch 兜底"],
+      "distinctive": "明确不杀提督以免资敌，直伤只瞄敌方大将",
+      "weakness": "moveCard 只看单卡分数，不建模队友接下来能打什么"
+    },
+    {
+      "id": "glm53", "model": "GLM5.3", "modelId": "glm-5.3", "strategy": "曲线竞速",
+      "oldLines": 553, "newLines": 734, "netLines": 181, "addedLines": 256, "removedLines": 75,
+      "metaNameUnchanged": true,
+      "changes": ["敌人按 team 通用过滤，购置曲线计时改为 turn/玩家数", "transfer 定向下一队友；打不穿的墙也预存伤害供队友合击；血线阈值按 100 权威放宽", "INTRINSIC 表降为加成，genericValue 走卡面文本；row 区分免费获取与销毁换战斗"],
+      "distinctive": "按轮而非按玩家回合重标曲线，6 人局不会过早转末期",
+      "weakness": "文本解析覆盖不了组合技；自己是大将时完全不移牌"
+    },
+    {
+      "id": "glm53flash", "model": "GLM5.3flash", "modelId": "glm-5.3-flash", "strategy": "精炼雪球",
+      "oldLines": 566, "newLines": 700, "netLines": 134, "addedLines": 179, "removedLines": 45,
+      "metaNameUnchanged": true,
+      "changes": ["ECON_TURNS 按 7 模式分档", "可杀判断计入 view.damage，团队允许合击半伤，转移全额化", "estimateFromText 与按费用线性兜底取较大者；修复空 targets 被 every() 误判"],
+      "distinctive": "修复「至多 N 张」允许选 0 张时 targets 为空的旧逻辑隐患",
+      "weakness": "团队半伤可能因队友没接上而蒸发；不主动规划先杀提督解锁大将"
+    },
+    {
+      "id": "minimaxm3", "model": "MiniMax M3", "modelId": "minimax-m3-pay", "strategy": "壁垒重锤",
+      "oldLines": 854, "newLines": 1309, "netLines": 455, "addedLines": 700, "removedLines": 245,
+      "metaNameUnchanged": true,
+      "changes": ["模式无关架构：血线读个人权威、目标只认 legalActions.targetId", "hydra3 整队前哨墙与队末清伤害接力拆墙；emperor 斩将优先、moveCard 仅兜底", "55 种新卡全补进表但主路径改成读卡面，写死表降级为精确化加成"],
+      "distinctive": "估值主路径从查表切换到读卡面的架构级改造",
+      "weakness": "放弃自算对位表，牺牲提前规划换规则一致性；moveCard 极保守"
+    },
+    {
+      "id": "minimaxm31flash", "model": "MiniMax M3.1flash", "modelId": "minimax-m3.1-flash", "strategy": "破垒夺权",
+      "oldLines": 999, "newLines": 1479, "netLines": 480, "addedLines": 686, "removedLines": 206,
+      "metaNameUnchanged": true,
+      "changes": ["按 modes.js 建 MODE_CFG 四标志表（team/shared/teamTurn/shieldTeam）", "补刀按全队可达战斗；transfer 按队友行动先后给到账系数；提督对位按队内座位序", "55 张新卡效果表加 inferDb 文本兜底；双同盟给 5% 兑现系数"],
+      "distinctive": "唯一显式建模式口径表，且正确把 emperor 的 shieldTeam 设为 false",
+      "weakness": "单步贪心不搜两步；hpOf 依赖 view.teams 结构"
+    },
+    {
+      "id": "kimi31pro", "model": "KIMI 3.1pro", "modelId": "kimi-k3.1-pro", "strategy": "压缩脉冲",
+      "oldLines": 478, "newLines": 583, "netLines": 105, "addedLines": 163, "removedLines": 58,
+      "metaNameUnchanged": true,
+      "changes": ["不再把团队模式等同于 team2v2，共享/个人血线按 view.mode 分流", "按座位序识别下一位队友；部分伤害改为合击铺垫；记录起手牌数微调贸易权重", "卡面解析改为按句号和换行分节，避免把同盟/双同盟误算进主效果"],
+      "distinctive": "卡面分节解析；双同盟使用独立的双同盟文本段",
+      "weakness": "不做队友手牌推测；部分伤害估值依赖后面是否还有队友行动"
+    },
+    {
+      "id": "kimi28preview", "model": "KIMI 2.8preview", "modelId": "kimi-k2.8-preview", "strategy": "蜂群速攻",
+      "oldLines": 446, "newLines": 542, "netLines": 96, "addedLines": 126, "removedLines": 30,
+      "metaNameUnchanged": true,
+      "changes": ["敌人按 team 分组，血线只读个人权威，新增敌大将斩杀优先", "transfer 兜底加 view.damage 合击判定", "通用文本评分为主、写死表仅加成；moveCard 阈值 5、double:true 加 1、resource combat 加 1.5"],
+      "distinctive": "用 view.emperors 判定大将，不写字面模式名",
+      "weakness": "transfer 只看下一个队友；moveCard 阈值偏高"
+    },
+    {
+      "id": "deepseekv41flash", "model": "deepseek v4.1flash", "modelId": "deepseek-v4.1-flash", "strategy": "三段涨潮",
+      "oldLines": 858, "newLines": 1204, "netLines": 346, "addedLines": 614, "removedLines": 268,
+      "metaNameUnchanged": true,
+      "changes": ["敌友按队伍列表、血线按起始权威比例归一化，经济段随权威拉长", "补刀扣掉队友留下的伤害；换手前把会清零的贸易/战斗 transfer 出去", "choice 按卡面分支逐支估值；row/rows 分流；targets 支持空集与至多 N 张"],
+      "distinctive": "起始权威比例归一化，hydra3 的 100 权威不再被误判为濒死",
+      "weakness": "条件收益统一按 50% 折价；不做跨座位推演"
+    },
+    {
+      "id": "deepseekv4pro", "model": "deepseek v4pro", "modelId": "deepseek-v4-pro", "strategy": "价值节奏快攻",
+      "oldLines": 286, "newLines": 405, "netLines": 119, "addedLines": 168, "removedLines": 49,
+      "metaNameUnchanged": true,
+      "changes": ["完全不做敌友推导，能不能打全交 legalActions 过滤", "baseAttackScore 用 view.damage 抵扣；转移留队友接力", "CARD_VALUE 已知牌加成加 fallbackValue 对未知牌走 cost/type/outpost/text"],
+      "distinctive": "最极端的「完全信任 legalActions」，不分组敌友、不算对位",
+      "weakness": "transfer 不区分队友、一律取最大量；moveCard 优先级极低"
+    },
+    {
+      "id": "step5preview", "model": "step5preview", "modelId": "step-5-preview", "strategy": "雪球收割",
+      "oldLines": 637, "newLines": 1084, "netLines": 447, "addedLines": 512, "removedLines": 65,
+      "metaNameUnchanged": true,
+      "changes": ["敌我按 team 划分，共享权威归零记 1000 分；emperor 斩杀只认大将", "nextActorIsTeammate 才允许留伤害；transfer 到账系数 1.05/0.85；emperor 前哨看个人", "FX 表补三个新包加 textFx 兜底；choice 取 primaryChoice 分支；手牌小于等于 2 时抽牌加 1.3"],
+      "distinctive": "明确区分 team2v2/hydra3 整队前哨与 emperor 个人前哨（口径正确）",
+      "weakness": "moveCard 多数情况评为负分几乎不用；合击只按座序单向推断"
+    },
+    {
+      "id": "mimov26pro", "model": "MIMO-v2.6-pro", "modelId": "mimo-v2.6-pro", "strategy": "闪电压制",
+      "oldLines": 214, "newLines": 294, "netLines": 80, "addedLines": 124, "removedLines": 44,
+      "metaNameUnchanged": true,
+      "changes": ["击杀估值按 7 模式区分终局口径（斩将/团队归零 6000、提督阵亡 3200）", "team-like 非击杀打基地加 40；transfer 给座位靠后队友加 20", "写死价值表完全移除，纯文本正则；row 按销毁得战斗/免费获取分流；双同盟加 15"],
+      "distinctive": "击杀收益分终局与解锁两档；彻底移除写死卡表",
+      "weakness": "纯文本正则遇复合效果会高估或低估；transfer 用座序启发式"
+    }
+  ],
+  "sharedAdjustments": [
+    "血线统一读 view.players[targetId].authority，弃用 emperor 下恒为 0 的 teams[].authority",
+    "目标合法性交给引擎，不再按座位奇偶或 (id+1)%n 自推对位",
+    "未知卡走可见字段加 text 通用估值，写死卡名表退为加成",
+    "团队节奏按整队轮流/队末清算重估：transfer 提前到账、基地伤害可跨人累计",
+    "新动作附加字段只打分、原样返回 legalActions 里的对象引用",
+    "12/12 meta.name 与修订前逐字相同，策略身份守恒"
+  ],
+  "divergences": [
+    { "topic": "新卡估值", "a": "补全显式效果表（minimaxm3 / minimaxm31flash / step5preview）", "b": "纯通用文本解析（hy4 / mimov26pro / kimi28preview 等）" },
+    { "topic": "双同盟 double:true", "a": "显式加分（mimov26pro +15、kimi28preview +1、glm53flash 3→3.3、minimaxm31flash 5% 兑现系数）", "b": "透明透传（hy3 / glm53）" },
+    { "topic": "moveCard 阈值", "a": "积极（glm53flash 贸易≥4 且牌值≥6.5、kimi31pro 倾向喂本队大将）", "b": "保守（minimaxm3 / deepseekv4pro 仅收尾兜底、step5preview 多评负分）" },
+    { "topic": "下一位队友推断", "a": "用座位序或 team 字段推算（11 份）", "b": "完全不推断（deepseekv4pro）" },
+    { "topic": "共享权威读数", "a": "读 players[].authority（11 份）", "b": "读 teams[].authority（minimaxm31flash 的 shared 分支）" },
+    { "topic": "合击价值", "a": "读 view.damage 抵扣后判断补刀（11 份）", "b": "按后续行动队友人数放大基地攻击分（hy4）" },
+    { "topic": "节奏重标", "a": "按轮数（glm53）或起始权威比例（deepseekv41flash）", "b": "按模式分档表（glm53flash）或手牌紧迫度（step5preview）" }
+  ],
+  "caveats": [
+    {
+      "type": "brief-vs-engine",
+      "detail": "隔离简报第 2 节把「前哨护盾按整队」概括到 emperor；引擎 teamHasOutpost 仅对 isTeamMode(team2v2/hydra3) 整队，emperor 按个人",
+      "impact": "仅影响估值；12/12 目标取自 legalActions，不产生非法动作、不影响对局能否结束",
+      "correctImplementations": ["minimaxm31flash (MODE_CFG.emperor.shieldTeam=false)", "step5preview (明确 emperor 看个人)"],
+      "evidence": "src/engine/engine.js:589 teamHasOutpost；src/engine/modes.js isTeamMode"
+    },
+    {
+      "type": "self-reported-number",
+      "detail": "step5preview 自述「FX 表覆盖全部 6 牌包 219 张」与引擎 CARD_DEFS 155 种 / 牌包合计 268 张不一致",
+      "impact": "不影响行为，脚本另有 textFx 兜底；引用时应以引擎卡表为准"
+    },
+    {
+      "type": "method",
+      "detail": "关键字矩阵是代码计数的代理指标，不等于语义正确性；三条主改动是模型自述，已交叉核对但未逐行审计算法"
+    }
+  ],
+  "validation": {
+    "nodeCheck": "12/12",
+    "isolatedSelfCheck": { "agents": 12, "scenarios": 20, "calls": 60, "ok": 12, "maxSingleDecisionMs": 4 },
+    "realGames": { "count": 84, "layout": "12 脚本 × 7 模式 × 7 牌包组合", "allFinished": true },
+    "npmTest": "95/95",
+    "dashboard": "12 个任务 / 12 完成 / 12 modelVerified"
+  },
+  "boundaries": [
+    "本报告不产生任何胜率、排名、β 或 CI，也未重跑锦标赛",
+    "reply/ 内其它报告与 tournaments/ 全部对应修订前脚本，不能用来评价修订后脚本",
+    "84 场对局只证明可加载、可完成、动作合法，不证明策略强弱；对手为内置 tactical/economic/random，非锦标赛赛制",
+    "若要对比修订前后，需用同一主种子、同一赛制重跑并单独归档，需用户拍板"
+  ]
+}

@@ -257,6 +257,7 @@
 | 视频与素材口径 | `README.md` 第 13 节；`video/storyboard.json` |
 | 模型 ID 验证 | `README.md` 第 7 节；`subagents.json` 的 `modelId / modelVerified` |
 | 按程序更新重启（隔离、无结果泄漏） | `README.md` 第 17 节；`test/agent-refresh.test.js`；`subagent-progress/<id>.md` 的「附录 · 2026-11-08」；`scripts/_backup-pre-refresh-20261108/` |
+| 12 个模型如何调整（无赛果） | `reply/star-realms-agent-refresh-report.md` / `.json`；`README.md` 17.6 的前哨护盾口径补正 |
 | 本次 UI 验收 | `test/lab-ui.test.js`；`test-artifacts/lab-ui-*.png`、`lab-ui-3v3-*.png` |
 | 工作日志 | `F:/producing/game/.workbuddy/memory/2026-11-05.md`、`2026-11-06.md` |
 
