@@ -111,6 +111,7 @@ export function markdownReport(report) {
     lines.push('- 辅助口径：在场队伍胜率（Wilson 95% CI）、所在队伍夺冠次数、搭档/对手覆盖数。');
   }
   lines.push(`- 每场 **BO${config.bo}**：覆盖「哪队占前位 × A 队谁在前 × B 队谁在前」共 8 种座位排列 × ${config.repeats} 轮；每局独立随机种子。2v2 中座位 [0,2] 一队、[1,3] 一队，共享 75 点权威。`);
+  lines.push('- **回合结构：整队轮流**——同队两名队友连续行动，队内换人不弃手/不补牌；队伍回合结束才弃手、补至 5 张、清空基地伤害。');
   lines.push(`- 牌包：**${config.setsLabel}** = ${config.sets.join(' + ')}；模式 team2v2（同队前哨保护、回合末资源预留）。`);
   lines.push('');
   lines.push('## 口径与局限');

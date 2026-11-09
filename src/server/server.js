@@ -25,10 +25,14 @@ const LAB_RUNS = Object.freeze([
   { key: 'clone-all', file: 'star-realms-2v2-clone-all.json', experiment: 'clone', sets: 'all', group: '2v2' },
   { key: 'random-core', file: 'star-realms-2v2-random-core.json', experiment: 'random', sets: 'core', group: '2v2' },
   { key: 'random-all', file: 'star-realms-2v2-random-all.json', experiment: 'random', sets: 'all', group: '2v2' },
-  { key: 'hydra3-core', file: 'star-realms-hydra3-core.json', experiment: 'hydra3', sets: 'core', group: '3v3' },
-  { key: 'hydra3-all', file: 'star-realms-hydra3-all.json', experiment: 'hydra3', sets: 'all', group: '3v3' },
-  { key: 'emperor-core', file: 'star-realms-emperor-core.json', experiment: 'emperor', sets: 'core', group: '3v3' },
-  { key: 'emperor-all', file: 'star-realms-emperor-all.json', experiment: 'emperor', sets: 'all', group: '3v3' }
+  { key: 'hydra3-core', file: 'star-realms-hydra3-core.json', experiment: 'hydra3', mode: 'hydra3', sets: 'core', group: '3v3' },
+  { key: 'hydra3-all', file: 'star-realms-hydra3-all.json', experiment: 'hydra3', mode: 'hydra3', sets: 'all', group: '3v3' },
+  { key: 'hydra3-clone-core', file: 'star-realms-3v3-clone-hydra3-core.json', experiment: 'clone', mode: 'hydra3', sets: 'core', group: '3v3' },
+  { key: 'hydra3-clone-all', file: 'star-realms-3v3-clone-hydra3-all.json', experiment: 'clone', mode: 'hydra3', sets: 'all', group: '3v3' },
+  { key: 'emperor-core', file: 'star-realms-emperor-core.json', experiment: 'emperor', mode: 'emperor', sets: 'core', group: '3v3' },
+  { key: 'emperor-all', file: 'star-realms-emperor-all.json', experiment: 'emperor', mode: 'emperor', sets: 'all', group: '3v3' },
+  { key: 'emperor-clone-core', file: 'star-realms-3v3-clone-emperor-core.json', experiment: 'clone', mode: 'emperor', sets: 'core', group: '3v3' },
+  { key: 'emperor-clone-all', file: 'star-realms-3v3-clone-emperor-all.json', experiment: 'clone', mode: 'emperor', sets: 'all', group: '3v3' }
 ]);
 const subagentClients = new Set();
 let activeTournament = null;
@@ -146,20 +150,31 @@ let labCache = { signature: '', result: null };
 
 function briefLabRun(full, entry) {
   return {
-    key: entry.key, experiment: entry.experiment, sets: entry.sets, group: entry.group || '2v2',
+    key: entry.key, experiment: entry.experiment, mode: entry.mode || full.config?.mode || null,
+    sets: entry.sets, group: entry.group || '2v2',
     file: full.file, generatedAt: full.generatedAt,
     config: full.config, audit: full.audit, stats: full.stats,
-    teams: full.teams || null,
+    teams: (full.teams || []).map(team => ({
+      id: team.id, name: team.name, kind: team.kind, vendor: team.vendor,
+      players: (team.players || []).map(player => ({ id: player.id, model: player.model, display: player.display }))
+    })),
     aggregate: full.aggregate || null,
     champion: full.champion || null,
-    members: full.members || [],
+    members: (full.members || []).map(row => {
+      const { partnerCounts, opponentCounts, ...rest } = row;
+      return rest;
+    }),
     contribution: full.contribution || null,
     // 看板只展示「各届冠军 + 随机组队名单」；逐轮逐局明细留在可下载的完整报告里。
+    // 每届只保留第一名，队伍名单只保留显示名，避免 12 份报告把看板撑到 500KB 以上。
     seasons: (full.seasons || []).map(season => ({
       index: season.index, seed: season.seedSeed || season.seed, champion: season.champion,
       audit: season.audit,
-      teamRoster: season.teamRoster || null,
-      standings: (season.standings || []).map(row => ({
+      teamRoster: full.config?.experiment === 'clone' || !season.teamRoster ? null : season.teamRoster.map(team => ({
+        id: team.id, name: team.name,
+        players: (team.players || []).map(player => ({ display: player.display }))
+      })),
+      standings: (season.standings || []).slice(0, 1).map(row => ({
         rank: row.rank, id: row.id, mp: row.mp, gameWins: row.gameWins,
         games: row.games, gameRate: row.gameRate,
         buchholz: row.buchholz, sb: row.sb
@@ -194,7 +209,7 @@ function readLab() {
     model: agent.model, strategy: agent.strategy, file: agent.file
   }]));
   const runs = entries.map(entry => entry.missing
-    ? { key: entry.key, experiment: entry.experiment, sets: entry.sets, missing: true }
+    ? { key: entry.key, experiment: entry.experiment, mode: entry.mode || null, sets: entry.sets, group: entry.group || '2v2', missing: true }
     : briefLabRun(readJsonIfExists(entry.file) || {}, entry));
   const result = {
     format: 'star-realms-sim-2v2-lab-board', version: 1,

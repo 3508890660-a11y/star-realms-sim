@@ -632,16 +632,24 @@ let labData = null;
 let labRunKey = 'clone-core';
 let labTab = 'board';
 
-const LAB_RUN_ORDER = ['clone-core', 'clone-all', 'random-core', 'random-all', 'hydra3-core', 'hydra3-all', 'emperor-core', 'emperor-all'];
+const LAB_RUN_ORDER = [
+  'clone-core', 'clone-all', 'random-core', 'random-all',
+  'hydra3-core', 'hydra3-all', 'hydra3-clone-core', 'hydra3-clone-all',
+  'emperor-core', 'emperor-all', 'emperor-clone-core', 'emperor-clone-all'
+];
 const LAB_RUN_LABELS = {
   'clone-core': ['实验 A · 核心', '同模型复制队 / 基础盒'],
   'clone-all': ['实验 A · 全扩', '同模型复制队 / 六牌包'],
   'random-core': ['实验 B · 核心', '随机组队 / 基础盒'],
   'random-all': ['实验 B · 全扩', '随机组队 / 六牌包'],
-  'hydra3-core': ['三头龙 · 核心', '3V3 共享 100 / 基础盒'],
-  'hydra3-all': ['三头龙 · 全扩', '3V3 共享 100 / 六牌包'],
-  'emperor-core': ['大将战 · 核心', '3V3 大将 60 / 基础盒'],
-  'emperor-all': ['大将战 · 全扩', '3V3 大将 60 / 六牌包']
+  'hydra3-core': ['三头龙 · 核心', '3V3 随机组队 / 基础盒'],
+  'hydra3-all': ['三头龙 · 全扩', '3V3 随机组队 / 六牌包'],
+  'hydra3-clone-core': ['三头龙复制队 · 核心', '同模型三人队 / 基础盒'],
+  'hydra3-clone-all': ['三头龙复制队 · 全扩', '同模型三人队 / 六牌包'],
+  'emperor-core': ['大将战 · 核心', '3V3 随机组队 / 基础盒'],
+  'emperor-all': ['大将战 · 全扩', '3V3 随机组队 / 六牌包'],
+  'emperor-clone-core': ['大将战复制队 · 核心', '同模型三人队 / 基础盒'],
+  'emperor-clone-all': ['大将战复制队 · 全扩', '同模型三人队 / 六牌包']
 };
 const LAB_TABS = [['board', '总榜'], ['members', '在场统计'], ['seasons', '各届冠军'], ['notes', '口径与复现']];
 
@@ -669,7 +677,8 @@ function labTopName(run) {
   return labModel(run.contribution?.rows?.[0]?.id);
 }
 
-const is3v3Run = run => run?.experiment === 'hydra3' || run?.experiment === 'emperor';
+const is3v3Run = run => run?.mode === 'hydra3' || run?.mode === 'emperor'
+  || run?.experiment === 'hydra3' || run?.experiment === 'emperor';
 
 function labHeadline(available) {
   if (!available.length) return '<span class="stat">reply/ 下暂无实验室报告，可用 src/team-lab-cli.js 生成。</span>';
@@ -688,7 +697,7 @@ function labHeadline(available) {
   const seed = available[0].config?.masterSeed || '—';
   return `<span class="crown">CROSS-RUN RESULT · ${available.length} 场</span><span class="who">${escapeHtml(name)}</span>` +
     `<span class="stat">${note}</span>` +
-    `<span class="stat">2V2 复制队口径：局胜率　·　2V2/3V3 个人口径：控制队友与对手后的 β</span>` +
+    `<span class="stat">复制队口径：局胜率　·　随机组队个人口径：控制队友与对手后的 β</span>` +
     `<span class="script">主种子 ${escapeHtml(seed)} · 合计 ${total} 局</span>`;
 }
 
@@ -748,7 +757,7 @@ function labSeasonsHtml(run) {
       ? (run.teams?.find(entry => entry.id === season.champion)?.vendor || season.champion)
       : (team ? team.players.map(player => player.display).join(' + ') : season.champion);
     const top = season.standings?.[0] || {};
-    const roster = (run.experiment === 'random' || is3v3Run(run)) && season.teamRoster
+    const roster = run.experiment !== 'clone' && (run.experiment === 'random' || is3v3Run(run)) && season.teamRoster
       ? `<div class="roster">${season.teamRoster.map(entry => `<span>${entry.players.map(player => escapeHtml(player.display)).join(' + ')}</span>`).join('')}</div>`
       : '';
     return `<div class="lab-season"><h4>第 ${season.index} 届 · <span class="mono">${escapeHtml(season.seed)}</span> · 冠军 ${escapeHtml(championName)} · MP ${top.mp ?? '—'} / 局胜 ${top.gameWins ?? '—'}</h4>${roster}</div>`;
@@ -759,22 +768,27 @@ function labNotesHtml(run) {
   const config = run.config || {};
   const isClone = run.experiment === 'clone';
   const is3v3 = is3v3Run(run);
-  const command = is3v3
+  const clone3 = is3v3 && isClone;
+  const command = clone3
+    ? `node src/mode-lab-cli.js --mode ${config.mode} --sets ${config.setsKey} --seasons ${config.seasons} --rounds ${config.rounds} --repeats ${config.repeats} --seed ${config.masterSeed} --out ${config.outBase}`
+    : is3v3
     ? `node src/mode-tourney-cli.js --mode ${config.mode} --sets ${config.setsKey} --seasons ${config.seasons} --repeats ${config.repeats} --seed ${config.masterSeed} --out ${config.outBase}`
     : `node src/team-lab-cli.js --experiment ${config.experiment} --sets ${config.setsKey} --seed ${config.masterSeed} --seasons ${config.seasons} --rounds ${config.rounds} --repeats ${config.repeats} --out ${config.outBase}`;
-  const design = is3v3
+  const design = clone3
+    ? `12 支队伍，每队由同一份 AI 脚本的三个副本组成；队友是自己的镜像，队伍成绩可近似归因为该脚本的 3V3 能力。赛制参考 1v1 瑞士轮 / 2V2 实验 A：12 个参赛单位、每届 ${config.rounds} 轮 × ${config.matchesPerRound} 场、同分优先 + 回溯零重赛，按局胜率聚合。${config.mode === 'emperor' ? '大将战每队 1 名大将（60 权威）+ 2 名提督（50 权威）；提督只能打自己的对位提督，对位阵亡后才可打敌方大将，大将可攻击任何敌方；大将被击败则全队失败。' : '三头龙全队共享 100 权威，队友间可转移贸易/战斗，任一人有前哨则全队受保护。'}`
+    : is3v3
     ? `每届把 12 个模型随机分成 4 队、每队 3 人，打完整单循环（3 轮 × 2 场，零重赛）。队伍胜负共享，用团队 Bradley–Terry 拟合 12 个 β 与前位截距 γ。${config.mode === 'emperor' ? '大将战每队 1 名大将（60 权威）+ 2 名提督（50 权威）；提督只能打自己的对位提督，对位阵亡后才可打敌方大将，大将可攻击任何敌方；大将被击败则全队失败。' : '三头龙全队共享 100 权威，队友间可转移贸易/战斗，任一人有前哨则全队受保护。'}`
     : isClone
     ? '12 支队伍，每队由同一份 AI 脚本的两个副本组成；队友是自己的镜像，队伍成绩可近似归因为单个脚本的 2V2 能力。赛制参考 1v1：12 个参赛单位、每届 5 轮瑞士轮、同分优先 + 回溯零重赛，按局胜率聚合。'
     : '每届把 12 个模型随机两两配成 6 队，12 届队伍构成都不同；每届跑 5 轮组队瑞士轮（带剩余轮次可行性前瞻）。队伍胜负共享，因此用团队 Bradley–Terry 逻辑模型拟合 12 个 β 与前位截距 γ，控制队友与对手强度。';
   return `<div class="lab-notes"><h4>实验设计</h4><p>${design}</p>` +
-    `<p>${is3v3 ? `每场 BO${config.bo}：前位队 3 局、后位队 3 局，队内座位按局轮换，每名队员在 6 个座位各坐 1 次${config.mode === 'emperor' ? '，且各当 2 次大将' : ''}。` : `每场 BO${config.bo} 覆盖「哪队占前位 × A 队谁在前 × B 队谁在前」共 8 种座位排列；2v2 中座位 [0,2] 一队、[1,3] 一队，共享 75 点权威。`}牌包：${escapeHtml((config.sets || []).join(' + '))}。</p>` +
+    `<p>${is3v3 ? `每场 BO${config.bo}：前位队 ${config.perSide || 3} 局、后位队 ${config.perSide || 3} 局，队内座位按局轮换，每名队员在 6 个座位各坐 1 次${config.mode === 'emperor' ? '，且各当 2 次大将' : ''}。回合结构为整队轮流：同队队友按座位升序连续行动，队末才弃手、补牌、清基地伤害。` : `每场 BO${config.bo} 覆盖「哪队占前位 × A 队谁在前 × B 队谁在前」共 8 种座位排列；2v2 中座位 [0,2] 一队、[1,3] 一队，共享 75 点权威；同队两名队友连续行动。`}牌包：${escapeHtml((config.sets || []).join(' + '))}。</p>` +
     '<h4>口径与局限</h4><ul>' +
     `<li>${is3v3 ? '3v3' : '2v2'} 胜负由队伍共享，个人指标都是统计估计而非直接测量；β 依赖「随机组队让队友/对手强度在期望上抵消」的设计假设。</li>` +
     `<li>同一场 BO${config.bo} 内对局并不独立，置信区间、SE 与 z 均为近似参考；结论只适用于本赛制、本牌包与这组种子。</li>` +
-    '<li>复制队两个副本各自拥有独立的 memory 与随机流，脚本模块级只有只读常量表，不存在跨座位状态串扰。</li>' +
+    `<li>复制队${is3v3 ? '三个' : '两个'}副本各自拥有独立的 memory 与随机流，脚本模块级只有只读常量表，不存在跨座位状态串扰。</li>` +
     '<li>全扩 = 核心 + 殖民战争 + 危机事件 + Frontiers + 两个危机小扩；事件牌翻出即结算，会改变牌库节奏，两种牌包名次不必相同。</li>' +
-    `<li>本场账目：${run.audit.playedGames} 局、重赛 ${run.audit.rematches}、重试 ${run.audit.retries}${run.audit.infeasibleRounds === undefined ? '' : `、前瞻回退 ${run.audit.infeasibleRounds}`}、座位配平 ${run.audit.seatBalanced ? '通过' : '未通过'}${run.audit.emperorBalanced === undefined ? '' : `、大将角色配平 ${run.audit.emperorBalanced ? '通过' : '未通过'}`}。</li>` +
+    `<li>本场账目：${run.audit.playedGames} 局、重赛 ${run.audit.rematches}、重试 ${run.audit.retries}${run.audit.infeasibleRounds === undefined ? '' : `、配对回退 ${run.audit.infeasibleRounds}`}、座位配平 ${run.audit.seatBalanced ? '通过' : '未通过'}${run.audit.emperorBalanced === undefined ? '' : `、大将角色配平 ${run.audit.emperorBalanced ? '通过' : '未通过'}${run.audit.emperorSeatBalanced === undefined ? '' : `（按副本 ${run.audit.emperorSeatBalanced ? '通过' : '未通过'}）`}`}。</li>` +
     '</ul><h4>复现命令</h4><pre>' + escapeHtml(command) + '</pre>' +
     `<p class="source">数据源：${escapeHtml(run.file || '—')} · 生成于 ${escapeHtml(run.generatedAt ? new Date(run.generatedAt).toLocaleString() : '—')} · 完整逐局记录可点右下角「下载当前完整报告」</p></div>`;
 }
@@ -822,7 +836,7 @@ function renderLab() {
     ['前位队胜率', pct(stats.frontSideRate), `${stats.frontSideWins}/${stats.totalGames}`],
     ['座位配平', audit.seatBalanced ? '通过' : '未通过', is3v3Run(run) ? '六座等频' : '四座等频'],
     ['重赛 / 重试', `${audit.rematches} / ${audit.retries}`,
-      audit.infeasibleRounds === undefined ? '完整单循环 · 无前瞻回退' : `前瞻回退 ${audit.infeasibleRounds}`],
+      audit.infeasibleRounds === undefined ? '完整单循环 · 无配对回退' : `配对回退 ${audit.infeasibleRounds}`],
     ['每人参与局数', audit.perModelGames, seatAppearances === null ? '按局去重' : `座位 ${seatAppearances} 次`]
   ];
   if (audit.emperorBalanced !== undefined) {

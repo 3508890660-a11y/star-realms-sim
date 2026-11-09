@@ -101,6 +101,7 @@ export function markdownReport(report) {
   lines.push('- 每届把 12 个模型随机分成 **4 队、每队 3 人**；跨届队伍组成不同，用主种子驱动，并在 64 次随机排列里挑「重复队友最少」的一份（只用于打散搭档，不改变随机来源）。');
   lines.push('- 每届打 **完整单循环**：3 轮 × 2 场，4 队两两交手一次，零重赛；场分胜 1 / 平 0.5 / 负 0。');
   lines.push(`- 每场 **BO${config.bo}**：前位队 3 局、后位队 3 局；队内座位按局轮换，**每名队员在 6 个座位各坐 1 次**。`);
+  lines.push('- **回合结构：整队轮流**——同队队友按座位升序连续行动，队内换人只清个人资源；队伍回合结束才弃手、补至 5 张、清空基地伤害。');
   if (config.mode === 'emperor') lines.push('- 大将战：每场让每名队员各当 **2 次大将**，大将/提督角色完全配平（起始权威 60 / 50）。');
   lines.push(`- 牌包：**${config.setsLabel}** = ${config.sets.join(' + ')}。`);
   lines.push(`- ${config.seasons} 届独立重跑，共 ${audit.playedGames} 局。`);

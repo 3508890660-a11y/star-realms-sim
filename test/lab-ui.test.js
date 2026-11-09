@@ -83,21 +83,28 @@ test('实验室 API：八场报告精简可读、汇总由各场榜首推出、�
     assert.equal(response.status, 200);
     const board = await response.json();
     assert.equal(board.format, 'star-realms-sim-2v2-lab-board');
-    assert.equal(board.runs.length, 8);
+    assert.equal(board.runs.length, 12);
     assert.equal(Object.keys(board.models).length, 12);
     // 「跨场榜首是否一致」必须由各场结果推出，不能写死某个模型名
     const winnerIds = board.summary.winners.map(winner => winner.id);
-    assert.equal(winnerIds.length, 8);
+    assert.equal(winnerIds.length, 12);
     assert.ok(winnerIds.every(id => id && board.models[id]), '每位榜首都应是已知模型');
     const distinct = new Set(winnerIds).size === 1;
     assert.equal(board.summary.consistent, distinct);
     assert.equal(board.summary.championId, distinct ? winnerIds[0] : null);
-    for (const run of board.runs.filter(item => item.group === '3v3')) {
+    for (const run of board.runs.filter(item => item.group === '3v3' && item.experiment !== 'clone')) {
       const winner = board.summary.winners.find(item => item.key === run.key);
       assert.equal(winner.id, run.contribution.rows[0].id, `${run.key} 的榜首应等于该场 β 第一`);
     }
+    for (const run of board.runs.filter(item => item.group === '3v3' && item.experiment === 'clone')) {
+      const winner = board.summary.winners.find(item => item.key === run.key);
+      const topTeam = run.teams.find(team => team.id === run.aggregate[0].id);
+      assert.equal(winner.id, topTeam.players[0].model, `${run.key} 的榜首应等于复制队冠军模型`);
+      assert.equal(run.mode, run.key.startsWith('emperor') ? 'emperor' : 'hydra3');
+    }
     assert.deepEqual(board.runs.filter(run => run.group === '3v3').map(run => run.key),
-      ['hydra3-core', 'hydra3-all', 'emperor-core', 'emperor-all']);
+      ['hydra3-core', 'hydra3-all', 'hydra3-clone-core', 'hydra3-clone-all',
+        'emperor-core', 'emperor-all', 'emperor-clone-core', 'emperor-clone-all']);
 
     for (const run of board.runs) {
       assert.equal(run.missing, undefined, `${run.key} 报告应存在`);
@@ -109,10 +116,16 @@ test('实验室 API：八场报告精简可读、汇总由各场榜首推出、�
       assert.equal(run.contribution.rows.length, 12);
       assert.equal(run.seasons.length, 12);
       if (run.group === '3v3') {
-        assert.equal(run.config.rounds, 3);
         assert.equal(run.config.bo, 6);
-        assert.equal(run.audit.emperorBalanced, true);
-        assert.equal(run.aggregate, null, '3V3 场次没有复制队聚合榜');
+        if (run.experiment === 'clone') {
+          assert.equal(run.config.rounds, 5);
+          assert.equal(run.aggregate.length, 12, '3V3 复制队应有 12 行聚合榜');
+          if (run.mode === 'emperor') assert.equal(run.audit.emperorBalanced, true);
+        } else {
+          assert.equal(run.config.rounds, 3);
+          assert.equal(run.audit.emperorBalanced, true);
+          assert.equal(run.aggregate, null, '3V3 随机组队没有复制队聚合榜');
+        }
       } else {
         assert.equal(run.config.rounds, 5);
         assert.equal(run.config.bo, 8);
@@ -121,8 +134,9 @@ test('实验室 API：八场报告精简可读、汇总由各场榜首推出、�
       }
     }
     // 看板必须精简：八场合计远小于逐份完整报告之和（单份 0.6–3.8MB 级）
-    assert.ok(JSON.stringify(board).length < 500000, '看板不应携带逐局明细');
-    assert.ok(!JSON.stringify(board).includes('"winningTeam"'), '看板不应包含逐局胜负字段');
+    const boardJson = JSON.stringify(board);
+    assert.ok(boardJson.length < 500000, '看板不应携带逐局明细');
+    assert.ok(!boardJson.includes('"winningTeam"'), '看板不应包含逐局胜负字段');
 
     const full = await fetch(`${URL}/api/lab/full?run=clone-core`);
     assert.equal(full.status, 200);

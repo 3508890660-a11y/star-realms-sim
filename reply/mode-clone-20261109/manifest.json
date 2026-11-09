@@ -1,0 +1,157 @@
+{
+  "round": "mode-clone-20261109",
+  "startedAt": "2026-11-09T09:49:59.671Z",
+  "finishedAt": "2026-11-09T10:04:45.271Z",
+  "note": "3V3 同模型复制队四场：12 支三人复制队、12 届 × 5 轮瑞士轮、BO6。主种子沿用 3V3 随机组队四场；不改动既有报告。",
+  "design": {
+    "experiment": "clone3",
+    "teams": 12,
+    "playersPerTeam": 3,
+    "seasons": 12,
+    "rounds": 5,
+    "matchesPerRound": 6,
+    "bo": 6,
+    "expectedGamesPerRun": 2160,
+    "seed": "mode-3v3-2026-11-08"
+  },
+  "concurrency": 4,
+  "jobs": [
+    {
+      "key": "hydra3-core",
+      "label": "3V3 复制队 · 三头龙 · 核心",
+      "args": [
+        "src/mode-lab-cli.js",
+        "--mode",
+        "hydra3",
+        "--sets",
+        "core",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--repeats",
+        "1",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "clone3-20261109-hydra3-core",
+        "--out",
+        "reply/star-realms-3v3-clone-hydra3-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-3v3-clone-hydra3-core.json",
+        "reply/star-realms-3v3-clone-hydra3-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T09:49:59.674Z",
+      "finishedAt": "2026-11-09T09:57:45.665Z",
+      "log": "logs/hydra3-core.log"
+    },
+    {
+      "key": "hydra3-all",
+      "label": "3V3 复制队 · 三头龙 · 全扩(6包)",
+      "args": [
+        "src/mode-lab-cli.js",
+        "--mode",
+        "hydra3",
+        "--sets",
+        "all",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--repeats",
+        "1",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "clone3-20261109-hydra3-all",
+        "--out",
+        "reply/star-realms-3v3-clone-hydra3-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-3v3-clone-hydra3-all.json",
+        "reply/star-realms-3v3-clone-hydra3-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T09:49:59.692Z",
+      "finishedAt": "2026-11-09T10:02:43.168Z",
+      "log": "logs/hydra3-all.log"
+    },
+    {
+      "key": "emperor-core",
+      "label": "3V3 复制队 · 大将战 · 核心",
+      "args": [
+        "src/mode-lab-cli.js",
+        "--mode",
+        "emperor",
+        "--sets",
+        "core",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--repeats",
+        "1",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "clone3-20261109-emperor-core",
+        "--out",
+        "reply/star-realms-3v3-clone-emperor-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-3v3-clone-emperor-core.json",
+        "reply/star-realms-3v3-clone-emperor-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T09:49:59.705Z",
+      "finishedAt": "2026-11-09T09:59:19.056Z",
+      "log": "logs/emperor-core.log"
+    },
+    {
+      "key": "emperor-all",
+      "label": "3V3 复制队 · 大将战 · 全扩(6包)",
+      "args": [
+        "src/mode-lab-cli.js",
+        "--mode",
+        "emperor",
+        "--sets",
+        "all",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--repeats",
+        "1",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "clone3-20261109-emperor-all",
+        "--out",
+        "reply/star-realms-3v3-clone-emperor-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-3v3-clone-emperor-all.json",
+        "reply/star-realms-3v3-clone-emperor-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T09:49:59.718Z",
+      "finishedAt": "2026-11-09T10:04:45.270Z",
+      "log": "logs/emperor-all.log"
+    }
+  ],
+  "allSucceeded": true
+}

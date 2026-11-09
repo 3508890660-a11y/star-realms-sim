@@ -1,0 +1,390 @@
+{
+  "round": "mode-clone-20261109",
+  "generatedAt": "2026-11-09T10:05:37.464Z",
+  "allPassed": true,
+  "expected": {
+    "experiment": "clone3",
+    "teams": 12,
+    "playersPerTeam": 3,
+    "seasons": 12,
+    "rounds": 5,
+    "matchesPerRound": 6,
+    "bo": 6,
+    "expectedGamesPerRun": 2160,
+    "seed": "mode-3v3-2026-11-08"
+  },
+  "runs": [
+    {
+      "key": "hydra3-core",
+      "file": "reply/star-realms-3v3-clone-hydra3-core.json",
+      "checks": [
+        {
+          "name": "格式",
+          "ok": true,
+          "detail": "star-realms-sim-3v3-lab"
+        },
+        {
+          "name": "实验类型",
+          "ok": true,
+          "detail": "clone/clone3"
+        },
+        {
+          "name": "模式/牌包",
+          "ok": true,
+          "detail": "hydra3/core"
+        },
+        {
+          "name": "主种子",
+          "ok": true,
+          "detail": "mode-3v3-2026-11-08"
+        },
+        {
+          "name": "规模",
+          "ok": true,
+          "detail": "12 队 × 3 人 / 12 届 × 5 轮 × 6 场 / BO6"
+        },
+        {
+          "name": "总局数守恒",
+          "ok": true,
+          "detail": "2160/2160（预期 2160）"
+        },
+        {
+          "name": "零重赛/重试/回退",
+          "ok": true,
+          "detail": "rematch=0 retry=0 fallback=0"
+        },
+        {
+          "name": "六座配平",
+          "ok": true,
+          "detail": "[180]"
+        },
+        {
+          "name": "每模型局数",
+          "ok": true,
+          "detail": "12 人 / 每人 360 局"
+        },
+        {
+          "name": "每模型座位数",
+          "ok": true,
+          "detail": "每人 1080 次"
+        },
+        {
+          "name": "每届局数",
+          "ok": true,
+          "detail": "12 届 / 每届 180 局"
+        },
+        {
+          "name": "冠军数守恒",
+          "ok": true,
+          "detail": "12/12"
+        },
+        {
+          "name": "队伍数",
+          "ok": true,
+          "detail": "12"
+        },
+        {
+          "name": "前位胜率合理",
+          "ok": true,
+          "detail": "55.28%"
+        }
+      ],
+      "summary": {
+        "champion": "deepseek v4.1flash",
+        "gameRate": 0.8472,
+        "ci95": [
+          0.8064,
+          0.8807
+        ],
+        "rateGap": 0.2055,
+        "z": 6.504,
+        "frontSideRate": 0.5528,
+        "elapsedMs": 465807
+      }
+    },
+    {
+      "key": "hydra3-all",
+      "file": "reply/star-realms-3v3-clone-hydra3-all.json",
+      "checks": [
+        {
+          "name": "格式",
+          "ok": true,
+          "detail": "star-realms-sim-3v3-lab"
+        },
+        {
+          "name": "实验类型",
+          "ok": true,
+          "detail": "clone/clone3"
+        },
+        {
+          "name": "模式/牌包",
+          "ok": true,
+          "detail": "hydra3/all"
+        },
+        {
+          "name": "主种子",
+          "ok": true,
+          "detail": "mode-3v3-2026-11-08"
+        },
+        {
+          "name": "规模",
+          "ok": true,
+          "detail": "12 队 × 3 人 / 12 届 × 5 轮 × 6 场 / BO6"
+        },
+        {
+          "name": "总局数守恒",
+          "ok": true,
+          "detail": "2160/2160（预期 2160）"
+        },
+        {
+          "name": "零重赛/重试/回退",
+          "ok": true,
+          "detail": "rematch=0 retry=0 fallback=0"
+        },
+        {
+          "name": "六座配平",
+          "ok": true,
+          "detail": "[180]"
+        },
+        {
+          "name": "每模型局数",
+          "ok": true,
+          "detail": "12 人 / 每人 360 局"
+        },
+        {
+          "name": "每模型座位数",
+          "ok": true,
+          "detail": "每人 1080 次"
+        },
+        {
+          "name": "每届局数",
+          "ok": true,
+          "detail": "12 届 / 每届 180 局"
+        },
+        {
+          "name": "冠军数守恒",
+          "ok": true,
+          "detail": "12/12"
+        },
+        {
+          "name": "队伍数",
+          "ok": true,
+          "detail": "12"
+        },
+        {
+          "name": "前位胜率合理",
+          "ok": true,
+          "detail": "54.31%"
+        }
+      ],
+      "summary": {
+        "champion": "deepseek v4.1flash",
+        "gameRate": 0.7667,
+        "ci95": [
+          0.7203,
+          0.8074
+        ],
+        "rateGap": 0.1417,
+        "z": 4.182,
+        "frontSideRate": 0.5431,
+        "elapsedMs": 763297
+      }
+    },
+    {
+      "key": "emperor-core",
+      "file": "reply/star-realms-3v3-clone-emperor-core.json",
+      "checks": [
+        {
+          "name": "格式",
+          "ok": true,
+          "detail": "star-realms-sim-3v3-lab"
+        },
+        {
+          "name": "实验类型",
+          "ok": true,
+          "detail": "clone/clone3"
+        },
+        {
+          "name": "模式/牌包",
+          "ok": true,
+          "detail": "emperor/core"
+        },
+        {
+          "name": "主种子",
+          "ok": true,
+          "detail": "mode-3v3-2026-11-08"
+        },
+        {
+          "name": "规模",
+          "ok": true,
+          "detail": "12 队 × 3 人 / 12 届 × 5 轮 × 6 场 / BO6"
+        },
+        {
+          "name": "总局数守恒",
+          "ok": true,
+          "detail": "2160/2160（预期 2160）"
+        },
+        {
+          "name": "零重赛/重试/回退",
+          "ok": true,
+          "detail": "rematch=0 retry=0 fallback=0"
+        },
+        {
+          "name": "六座配平",
+          "ok": true,
+          "detail": "[180]"
+        },
+        {
+          "name": "大将按模型配平",
+          "ok": true,
+          "detail": "true"
+        },
+        {
+          "name": "大将按副本配平",
+          "ok": true,
+          "detail": "[120]"
+        },
+        {
+          "name": "每模型局数",
+          "ok": true,
+          "detail": "12 人 / 每人 360 局"
+        },
+        {
+          "name": "每模型座位数",
+          "ok": true,
+          "detail": "每人 1080 次"
+        },
+        {
+          "name": "每届局数",
+          "ok": true,
+          "detail": "12 届 / 每届 180 局"
+        },
+        {
+          "name": "冠军数守恒",
+          "ok": true,
+          "detail": "12/12"
+        },
+        {
+          "name": "队伍数",
+          "ok": true,
+          "detail": "12"
+        },
+        {
+          "name": "前位胜率合理",
+          "ok": true,
+          "detail": "54.03%"
+        }
+      ],
+      "summary": {
+        "champion": "GLM5.3",
+        "gameRate": 0.7528,
+        "ci95": [
+          0.7057,
+          0.7945
+        ],
+        "rateGap": 0.1361,
+        "z": 3.973,
+        "frontSideRate": 0.5403,
+        "elapsedMs": 559173
+      }
+    },
+    {
+      "key": "emperor-all",
+      "file": "reply/star-realms-3v3-clone-emperor-all.json",
+      "checks": [
+        {
+          "name": "格式",
+          "ok": true,
+          "detail": "star-realms-sim-3v3-lab"
+        },
+        {
+          "name": "实验类型",
+          "ok": true,
+          "detail": "clone/clone3"
+        },
+        {
+          "name": "模式/牌包",
+          "ok": true,
+          "detail": "emperor/all"
+        },
+        {
+          "name": "主种子",
+          "ok": true,
+          "detail": "mode-3v3-2026-11-08"
+        },
+        {
+          "name": "规模",
+          "ok": true,
+          "detail": "12 队 × 3 人 / 12 届 × 5 轮 × 6 场 / BO6"
+        },
+        {
+          "name": "总局数守恒",
+          "ok": true,
+          "detail": "2160/2160（预期 2160）"
+        },
+        {
+          "name": "零重赛/重试/回退",
+          "ok": true,
+          "detail": "rematch=0 retry=0 fallback=0"
+        },
+        {
+          "name": "六座配平",
+          "ok": true,
+          "detail": "[180]"
+        },
+        {
+          "name": "大将按模型配平",
+          "ok": true,
+          "detail": "true"
+        },
+        {
+          "name": "大将按副本配平",
+          "ok": true,
+          "detail": "[120]"
+        },
+        {
+          "name": "每模型局数",
+          "ok": true,
+          "detail": "12 人 / 每人 360 局"
+        },
+        {
+          "name": "每模型座位数",
+          "ok": true,
+          "detail": "每人 1080 次"
+        },
+        {
+          "name": "每届局数",
+          "ok": true,
+          "detail": "12 届 / 每届 180 局"
+        },
+        {
+          "name": "冠军数守恒",
+          "ok": true,
+          "detail": "12/12"
+        },
+        {
+          "name": "队伍数",
+          "ok": true,
+          "detail": "12"
+        },
+        {
+          "name": "前位胜率合理",
+          "ok": true,
+          "detail": "54.44%"
+        }
+      ],
+      "summary": {
+        "champion": "GLM5.3",
+        "gameRate": 0.6944,
+        "ci95": [
+          0.645,
+          0.7398
+        ],
+        "rateGap": 0.0805,
+        "z": 2.279,
+        "frontSideRate": 0.5444,
+        "elapsedMs": 885369
+      }
+    }
+  ]
+}

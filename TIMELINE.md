@@ -258,6 +258,44 @@
 
 **边界**：差异只来自脚本适配（引擎、种子、赛制均一致）；3V3 榜首易主在抽样噪声内；第 10 / 11 / 14 / 16.4 节与已发布视频仍是历史记录。详见 `README.md` 第 18 节。
 
+### 14) 2026-11-09 17:46–18:05 · 复核「行动顺序 / 攻击目标」并修正残留文案
+
+**触发**：用户追问「行动与攻击目标问题有没有真的解决，我这边看好像还是有问题」。
+
+**做法**：
+
+1. `tools/probe-attack-targets.mjs`：不依赖模型脚本，直接构造 2V2 / 三头龙 / 大将战局面，独立按官方口径推期望，逐座位检查 `legalActions()` 的攻击目标；覆盖 3 种合法大将座位、对位存活/阵亡、前哨保护、整队轮流与队末补牌。
+2. `tools/audit-mode-replay.mjs`：从 `reply/` 四份 3V3 报告各取 2 局（共 8 局 / 4,967 个动作）按原种子重放，逐动作复核胜队、回合数、动作数、回合顺序与攻击目标。
+
+**结果**：内核行为**已正确**——提督在对位存活时 0 次越位攻击大将；8 局中 14 次提督攻击大将全部发生在对位阵亡后；对位关系不随淘汰漂移；行动序列严格 `0→2→4→1→3→5`（2V2 为 `0→2→1→3`）；队内换人不补牌、队末本队补到 5。
+
+**真正的「看起来有问题」来源是文案**：`modes.js` 的三头龙描述仍写「交替座位」（原指座位排布，易被读成行动顺序）；3V3 报告只写「队内座位按局轮换」，没写整队轮流；观战台说明同样缺失。已修 `modes.js`、`mode-tourney-cli.js` / `team-lab-cli.js` 报告模板、`README.md` 16.3 与 `public/app.js`；`reply/` 下 8 份既有报告的 Markdown 用新模板重生成（`tools/regen-report-md.mjs`，JSON 数据未动）。
+
+**产物**：`reply/star-realms-mode-rules-audit.md`；两支探针脚本；`tools/regen-report-md.mjs`。
+
+**未改**：大将战 1 贸易移牌仍允许任意队友（官方限相邻队友）；大将战前哨按个人（2V2/三头龙按整队），口径见 README 17.6。
+
+### 15) 2026-11-09 17:47–18:10 · 3V3 同模型复制队四场（8,640 局）
+
+**触发**：用户要求「3v3 再做同一个模型复制的 4 场」。
+
+**设计**：把 2V2「实验 A 同模型复制队」搬到 3V3——12 支队伍、每队由同一份脚本的三个副本组成；12 届 × 5 轮瑞士轮 × 6 场（12 队两两配对）、BO6；主种子 `mode-3v3-2026-11-08`；每场 2,160 局，四场 8,640 局。座位与大将角色逐局轮换，六座与每副本大将次数均配平。
+
+**实现**：
+
+- `src/engine/team-lab.js` 新增 `buildCloneTrios()`（三副本 seatId `#a/#b/#c`，同队共用一份脚本）。
+- 新增 `src/mode-lab-cli.js`：复用 `seatPlan`、`pairRound`、`rankPlayers`、`aggregateSeasons`、`memberStats`、`fitContribution`；报告格式 `star-realms-sim-3v3-lab`。
+- 新增 `src/mode-lab-summary.js`、`tools/mode-clone-20261109.mjs`（并发 4 编排）、`tools/mode-clone-verify.mjs`、`test/mode-lab.test.js`、`test/mode-rules.test.js`。
+- 看板注册 4 个新标签（`hydra3-clone-*` / `emperor-clone-*`），`is3v3Run` 改为同时识别 `experiment` 与 `mode`，3v3 复制队展示「复制队能力榜」。
+
+**结果**：三头龙核心/全扩均由 **deepseek v4.1flash** 拿下（84.72% / 76.67%，10/12 与 8/12 冠，冠亚 z 6.504 / 4.182）；大将战核心/全扩均由 **GLM5.3** 拿下（75.28% / 69.44%，12/12 与 7/12 冠，z 3.973 / 2.279）。四场冠亚差**全部达到 95% 显著**；前位胜率 54.03%–55.28%。与随机组队 3V3 的 β 第一（四个不同模型）不矛盾：复制队测自协同强度，随机组队测个人边际贡献。
+
+**验收**：四场 4/4 退出码 0，`tools/mode-clone-verify.mjs` 4/4 通过（2,160/2,160 局、零重赛/重试/配对回退、六座配平、大将按副本配平、每届 180 局、冠军数 12）；全量 `npm test` **103/103**（原 95 + 复制队 7 + 规则探针 1）。
+
+**产物**：`reply/star-realms-3v3-clone-{hydra3,emperor}-{core,all}.json/.md`；`reply/star-realms-3v3-clone-summary.md`；`reply/mode-clone-20261109/`（manifest / logs / verification）。
+
+**边界**：复制队不是个人能力榜；β 只作辅助。全扩 6 包与 2V2 的 3 包不可比。详见 `README.md` 第 19 节。
+
 ---
 
 ## 三、证据索引
@@ -280,6 +318,9 @@
 | 按程序更新重启（隔离、无结果泄漏） | `README.md` 第 17 节；`test/agent-refresh.test.js`；`subagent-progress/<id>.md` 的「附录 · 2026-11-08」；`scripts/_backup-pre-refresh-20261108/` |
 | 12 个模型如何调整（无赛果） | `reply/star-realms-agent-refresh-report.md` / `.json`；`README.md` 17.6 的前哨护盾口径补正 |
 | 修订后全量重跑（10 场 / 15,408 局） | `reply/rerun-20261109/manifest.json` / `verification.json` / `metrics-after.json`；`reply/star-realms-refresh-20261109-summary.md`；`README.md` 第 18 节 |
+| 行动顺序与攻击目标复核 | `reply/star-realms-mode-rules-audit.md`；`tools/probe-attack-targets.mjs`；`tools/audit-mode-replay.mjs`；`test/mode-rules.test.js` |
+| 3V3 同模型复制队（4 场 / 8,640 局） | `reply/star-realms-3v3-clone-*.json/.md` 的 `audit` / `aggregate`；`reply/star-realms-3v3-clone-summary.md`；`reply/mode-clone-20261109/verification.json`；`README.md` 第 19 节 |
+| 3V3 复制队结果 | 三头龙 deepseek v4.1flash 84.72% / 76.67%；大将战 GLM5.3 75.28% / 69.44%；四场冠亚 z 2.279–6.504 |
 | 修订前基线 | `reply/baseline-before-refresh/metrics.json` 与归档 `.md`；完整旧 JSON 在 git `72f646f` |
 | 本次 UI 验收 | `test/lab-ui.test.js`；`test-artifacts/lab-ui-*.png`、`lab-ui-3v3-*.png` |
 | 工作日志 | `F:/producing/game/.workbuddy/memory/2026-11-05.md`、`2026-11-06.md` |

@@ -34,6 +34,29 @@ export function buildCloneTeams(catalog) {
   }));
 }
 
+/**
+ * 把 12 个模型各自复制成一支三人队（3V3 复制队实验用）。
+ * seatId 带 #a/#b/#c 后缀，三个副本指向同一份脚本，但每个座位有独立的 memory 与随机流。
+ */
+export function buildCloneTrios(catalog) {
+  if (!Array.isArray(catalog) || catalog.length !== 12) throw new Error(`三人复制队需要 12 个模型，实际 ${catalog?.length}`);
+  return catalog.map(agent => ({
+    id: `clone-${agent.id}`,
+    name: `${agent.model} 三人复制队`,
+    kind: 'clone3',
+    model: agent.id,
+    vendor: agent.model,
+    players: ['a', 'b', 'c'].map(suffix => ({
+      id: `${agent.id}#${suffix}`,
+      model: agent.id,
+      display: `${agent.model}·${suffix.toUpperCase()}`,
+      modelId: agent.modelId,
+      strategy: agent.strategy,
+      script: `script:${String(agent.file).split(/[\\/]/).pop()}`
+    }))
+  }));
+}
+
 /** 枚举 n 个成员的随机完美匹配（Fisher–Yates 洗牌后两两相邻）。 */
 function randomMatching(ids, random) {
   const order = shuffleWithRandom(ids, random);
