@@ -4,6 +4,8 @@
 
 > 非官方开源实现。界面与图形均为原创，没有复制 Steam 版的图片、音频或程序集。规则文字与卡牌数据根据官方规则书、官方产品页、卡牌资料及用户提供的本地资料整理。
 
+> **当前数据口径（2026-11-09）**：`reply/` 内的 10 份正式赛报告已用「按程序更新修订后的 12 份 AI 脚本」、同一主种子全量重跑（合计 15,408 局）。第 10 / 11 / 14 / 16.4 节的「本次结果」是**重跑前的历史记录**；评价修订后脚本请以 `reply/` 当前报告与 `reply/star-realms-refresh-20261109-summary.md` 为准。修订前基线见 `reply/baseline-before-refresh/`。
+
 ## 1. 立即运行
 
 要求：**Node.js 20 或更高版本**。不需要 `npm install`。
@@ -711,7 +713,7 @@ node tools/build-extra-expansions.mjs "…/sr_all_cards.json"   # 仅在扩充�
 
 ### 17.5 口径边界（重要）
 
-- **本轮只修订脚本，没有重跑任何锦标赛**。`reply/` 与 `tournaments/` 内的所有报告、β、CI 仍是**修订前脚本**产生的，不能用来评价修订后的表现；第 10 / 11 / 14 / 16 节的结论继续按其原始口径保留，但脚本已不是同一份。
+- **第 17 节生成时（2026-11-09 09:20）确实只修订了脚本、未重跑锦标赛**；用户随后于当日拍板全量重跑（见第 18 节）。因此 `reply/` 当前的正式报告、`tournaments/latest.*` 与 `tournaments/team-latest.*` 都已对应**修订后脚本**；修订前基线归档在 `reply/baseline-before-refresh/`，完整旧 JSON 保留在 git `72f646f`。第 10 / 11 / 14 / 16 节的历史结论按其原始口径保留，但不再是当前脚本的表现。
 - 若要对比修订前后，需要用同一主种子、同一赛制重跑并单独归档；本轮未产生任何新的胜率或排名数据。
 - 12 份更新说明是模型主动写下的**公开设计说明**，不是内部推理；看板只展示可审阅内容。
 - 大将战 1 贸易移牌允许任意队友（官方限「相邻队友」）这一遗留偏差未改，已在第 16.6 节记录，本轮脚本按当前引擎行为适配。
@@ -721,4 +723,28 @@ node tools/build-extra-expansions.mjs "…/sr_all_cards.json"   # 仅在扩充�
 《12 个 subagent 按程序更新修订脚本 · 调整报告》：`reply/star-realms-agent-refresh-report.md`（人读）与 `reply/star-realms-agent-refresh-report.json`（机读）。报告只归纳「脚本怎么改」——程序更新 6 类挑战、12 份脚本的客观 diff 与适配覆盖矩阵、逐模型三条主改动、共性调整与分歧点、校验与边界；**不含任何胜率、排名或赛果**。
 
 **口径补正**：整理报告时复核发现，隔离简报 `tools/agent-refresh-updates.md` 第 2 节把「前哨护盾按整队」概括在涵盖 `emperor` 的小节下，与引擎不完全一致。`engine.js` 的 `teamHasOutpost()` 仅对 `isTeamMode()`（`team2v2` / `hydra3`）按整队判定，**`emperor` 按个人判定**。影响只到估值层：12 份脚本的实际目标都取自 `legalActions`，引擎已按正确口径过滤，因此不产生非法动作、不影响对局结束。正确落地该区别的是 `minimaxm31flash`（`MODE_CFG.emperor.shieldTeam = false`）与 `step5preview`（明确 emperor 前哨看个人）；其余脚本多为泛化表述，留待下一轮复核。简报保持原样存档，作为当时的真实输入证据。
+
+---
+
+## 18. 全量重跑（2026-11-09，当前结果）
+
+用户拍板后，用修订后 12 份脚本、与修订前**完全相同的主种子、赛制参数与引擎版本**重跑 10 场赛制，共 **15,408 局**；产物全部在 `reply/`。对照报告：`reply/star-realms-refresh-20261109-summary.md`；重跑记录：`reply/rerun-20261109/`；修订前基线：`reply/baseline-before-refresh/`（完整旧 JSON 见 git `72f646f`）。
+
+| 赛事 | 修订前 | 重跑后 |
+|---|---|---|
+| 1v1 瑞士轮冠军 | deepseek v4.1flash 73.00%（11 冠，z=3.735） | **deepseek v4.1flash 69.17%（8 冠，z=2.323）** |
+| 2V2 组队赛冠军 | DeepSeek 联队 83.33%（9 冠） | **DeepSeek 联队 81.67%（11 冠）** |
+| 2V2 实验室四场榜首 | deepseek v4.1flash（A 核心 87.50% / A 全扩 73.12%；B β 1.2135 / 0.8320） | **仍是 deepseek v4.1flash**（A 核心 84.17% / A 全扩 71.04%；B β 1.1791 / 0.7204） |
+| 3V3 四场 β 第一 | 3 场 deepseek v4.1flash + 1 场 MiniMax M3 | **四个不同模型**（deepseek v4.1flash / MiniMax M3 / GLM5.3 / deepseek v4pro）；最大 \|z\| 1.766，未达 95% 显著 |
+| 前位胜率 | 1v1 53.53%、2V2 组队 53.06%、3V3 54%–56% | 1v1 53.06%、2V2 组队 54.31%、3V3 54.86%–56.48% |
+
+**解读**：头部格局（1v1 / 2V2 / 2V2 实验室）未变，但优势普遍收窄；3V3 榜首易主发生在统计噪声内，不能当作强弱排序变化。差异只来自脚本适配，规则版本与种子均一致。
+
+**验收**：`node tools/rerun-verify.mjs` 10/10 通过（局数守恒、零重赛/重试、逐局种子唯一、座位与大将配平、`config` 与基线逐字段一致）；`npm test` **95/95**。
+
+**复现**：`node tools/rerun-20261109.mjs`（编排 10 场，并发 5）→ `node tools/rerun-verify.mjs` → `node src/team-lab-summary.js && node src/mode-summary.js`。1v1 / 2V2 组队赛的 CLI 产物先落 `tournaments/latest.*` 与 `tournaments/team-latest.*`，再复制到 `reply/` 正式文件名。
+
+**顺带修复**：`src/team-lab-summary.js` 里两处写死的历史数字与「重跑即更新」矛盾，已改为从当前报告动态生成；`src/mode-summary.js` 的规则说明改为不含固定结论的表述。两份汇总已按新报告重新生成。
+
+**边界**：第 10 / 11 / 14 / 16.4 节的「本次结果」、已发布纪录片与 B 站文案仍是历史记录，不代表修订后脚本的表现。2V2 实验的「全扩」是 3 包、3V3 是 6 包，不可直接比较；所有结论只适用于本赛制、本牌包与这组主种子。
 

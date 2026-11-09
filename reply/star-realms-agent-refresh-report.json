@@ -6,6 +6,7 @@
   "scope": "只描述脚本如何按程序更新做适配",
   "containsMatchResults": false,
   "tournamentsRerun": false,
+  "postReportNote": "2026-11-09 09:20 后用户已拍板全量重跑 10 场赛制；记录见 reply/rerun-20261109/，修订前基线见 reply/baseline-before-refresh/ 与 git 72f646f，对照见 reply/star-realms-refresh-20261109-summary.md。tournamentsRerun=false 是报告生成时刻的状态；第 1-7 节的调整事实不受影响。",
   "dataSources": [
     "隔离目录 out/<id>.md 的 12 份公开更新说明",
     "修订后 scripts/agent-*.js 与修订前 scripts/_backup-pre-refresh-20261108/agent-*.js 的 diff",

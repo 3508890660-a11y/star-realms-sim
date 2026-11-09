@@ -33,6 +33,7 @@ lines.push('');
 lines.push(`> 主种子 \`${reports[0].data.config.masterSeed}\` · 生成于 ${new Date().toISOString()}`);
 lines.push('');
 lines.push('> 规则修正（2026-11-08）：起手牌改为官方「先手队全员 3 张、后手队全员 5 张」（旧实现误用自由混战的 3/4/5/5），并改为整队轮流——队内队友连续行动，弃手、补牌与基地伤害在队伍回合结束时结算。四场均已用同一主种子重跑。');
+lines.push('> 脚本版本：2026-11-08 按程序更新修订的 12 份脚本（隔离轮）。本文件只读取 `reply/` 当前落盘报告，重跑即更新；修订前基线见 `reply/baseline-before-refresh/`。');
 lines.push('');
 lines.push('## 四场赛事');
 lines.push('');
@@ -98,15 +99,30 @@ lines.push('');
 lines.push('## 设计细节与解读');
 lines.push('');
 lines.push('- **实验 A 参考 1v1 的赛制**：12 个参赛单位、每届 5 轮、同分优先 + 回溯零重赛，按局胜率聚合。12 队每届只打 30 个对阵（K12 共 66 条边），覆盖不全由 12 届不同种子聚合补足，与 1v1 正式赛口径一致。');
-lines.push('- **实验 B 的组队方式**：每届随机把 12 个模型配成 6 队，12 届累计覆盖 59～61 种不同搭档（共 66 种），避免某人长期绑定固定队友；β 已扣除队友与对手强度。');
-lines.push('- **两种口径不一致时以 β 为准**：全扩下「在场队伍胜率第一」与「β 第一」不是同一模型，正说明队伍胜负会被队友带高；这正是随机组队 + 边际贡献拟合要解决的问题。');
-lines.push('- **牌包影响**：全扩加入事件牌后，实验 A 冠军局胜率由 88.96% 降到 79.79%、β 由 1.3108 降到 0.9083，优势收窄但榜首未变，说明事件带来的随机性削弱了稳定策略的确定性优势。');
+const partnerPairs = randomReports.map(r => r.data.audit.partnerPairs).filter(Number.isFinite);
+const pairText = partnerPairs.length
+  ? `累计覆盖 ${Math.min(...partnerPairs)}～${Math.max(...partnerPairs)} 种不同搭档（共 66 种）`
+  : '累计覆盖多种不同搭档';
+lines.push(`- **实验 B 的组队方式**：每届随机把 12 个模型配成 6 队，12 届${pairText}，避免某人长期绑定固定队友；β 已扣除队友与对手强度。`);
+const mixedReport = randomReports.find(r => r.data.members[0].id !== r.data.contribution.rows[0].id);
+lines.push(mixedReport
+  ? `- **两种口径不一致时以 β 为准**：${mixedReport.sets}下「在场队伍胜率第一」与「β 第一」不是同一模型，正说明队伍胜负会被队友带高；这正是随机组队 + 边际贡献拟合要解决的问题。`
+  : '- **两种口径**：当前四场「在场队伍胜率第一」与「β 第一」一致；若后续重跑出现不一致，应以 β 为主口径，因为队伍胜负会被队友带高。');
+const cloneCore = cloneReports.find(r => r.data.config.setsKey === 'core');
+const cloneAll = cloneReports.find(r => r.data.config.setsKey === 'all');
+if (cloneCore && cloneAll) {
+  const r0 = cloneCore.data.aggregate[0].gameRate, r1 = cloneAll.data.aggregate[0].gameRate;
+  const b0 = cloneCore.data.contribution.rows[0].beta, b1 = cloneAll.data.contribution.rows[0].beta;
+  const sameTop = cloneCore.data.aggregate[0].id === cloneAll.data.aggregate[0].id;
+  lines.push(`- **牌包影响**：全扩加入事件牌后，实验 A 冠军局胜率 ${pct(r0)} → ${pct(r1)}、榜首 β ${b0} → ${b1}；${sameTop ? '榜首未变' : '榜首易主'}，说明事件牌与新增卡池会改变节奏与优势幅度。`);
+}
 lines.push('');
 lines.push('## 口径提示');
 lines.push('');
 lines.push('- 实验 A 的队友是该脚本自身的副本，队伍成绩可近似归因为脚本能力；实验 B 的胜负由两人共享，个人 β 是统计估计而非直接测量。');
 lines.push('- 同一场 BO8 内对局不独立，所有 CI / SE / z 均为近似参考；结论只适用于本赛制、本牌包与这组种子。');
-lines.push('- 2v2 规则本身带前位优势，四场实测前位队胜率 54.31%～55.28%；每场 BO8 已把前后位严格配平，且 β 模型含前位截距 γ，不会把座位优势算到个人头上。');
+const frontRates = reports.map(r => r.data.stats.frontSideRate).filter(Number.isFinite);
+lines.push(`- 2v2 规则本身带前位优势，四场实测前位队胜率 ${pct(Math.min(...frontRates))}～${pct(Math.max(...frontRates))}；每场 BO8 已把前后位严格配平，且 β 模型含前位截距 γ，不会把座位优势算到个人头上。`);
 lines.push('- 全扩 = 核心 + 殖民战争 + 危机事件；事件牌翻出即结算，会改变牌库节奏，因此两种牌包名次不必相同。');
 lines.push('');
 lines.push('## 复现');

@@ -222,3 +222,15 @@ teamHasOutpost(owner) {
 | 卡牌口径 | `src/engine/cards.js` 的 `CARD_DEFS` / `EXPANSION_PACKS` |
 | 验收 | `test/agent-refresh.test.js`；`npm test` 输出；`README.md` 17.4 |
 | 机读版本报告 | `reply/star-realms-agent-refresh-report.json` |
+| 修订后重跑 | `reply/rerun-20261109/`；`reply/star-realms-refresh-20261109-summary.md` |
+
+---
+
+## 10. 后续（2026-11-09 补记）
+
+用户已拍板用修订后脚本、同一主种子与同一赛制全量重跑 10 场赛制，产物写入 `reply/`。因此：
+
+- 第 0 节与第 8 节的「本轮未重跑锦标赛 / 未产生新赛果」是**本报告生成时刻（2026-11-09 09:20）的状态**，此后已被重跑取代；
+- 修订前的 10 份报告已归档为 `reply/baseline-before-refresh/`（人读报告 + 指标快照；完整 JSON 见 git `72f646f`）；
+- 重跑记录、逐场日志与新旧对照见 `reply/rerun-20261109/` 与 `reply/star-realms-refresh-20261109-summary.md`；
+- 本报告第 1–7 节关于「脚本如何调整」的事实与代码证据**不受重跑影响**，仍然成立。

@@ -1,0 +1,322 @@
+{
+  "round": "refresh-20261109",
+  "startedAt": "2026-11-09T02:03:11.051Z",
+  "finishedAt": "2026-11-09T02:21:34.000Z",
+  "note": "修订后 12 份脚本；主种子与赛制参数与修订前正式报告完全一致。修订前基线见 reply/baseline-before-refresh/ 与 git 72f646f。",
+  "concurrency": 5,
+  "jobs": [
+    {
+      "key": "swiss-core",
+      "label": "1v1 瑞士轮 · 核心",
+      "args": [
+        "src/tourney-cli.js",
+        "--seed",
+        "swiss-2026-11-05",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--per-side",
+        "5",
+        "--sets",
+        "core",
+        "--run-id",
+        "refresh-20261109-swiss-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "tournaments/latest.json",
+        "tournaments/latest.md",
+        "tournaments/refresh-20261109-swiss-core.json",
+        "tournaments/refresh-20261109-swiss-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:03:11.054Z",
+      "finishedAt": "2026-11-09T02:10:58.592Z",
+      "log": "logs/swiss-core.log"
+    },
+    {
+      "key": "team-swiss-core",
+      "label": "2V2 组队瑞士轮 · 核心",
+      "args": [
+        "src/team-tourney-cli.js",
+        "--seed",
+        "swiss-2026-11-05",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--repeats",
+        "1",
+        "--sets",
+        "core",
+        "--run-id",
+        "refresh-20261109-team-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "tournaments/team-latest.json",
+        "tournaments/team-latest.md",
+        "tournaments/refresh-20261109-team-core.json",
+        "tournaments/refresh-20261109-team-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:03:11.077Z",
+      "finishedAt": "2026-11-09T02:10:09.215Z",
+      "log": "logs/team-swiss-core.log"
+    },
+    {
+      "key": "lab-clone-core",
+      "label": "2V2 实验室 A · 复制队 · 核心",
+      "args": [
+        "src/team-lab-cli.js",
+        "--experiment",
+        "clone",
+        "--sets",
+        "core",
+        "--seed",
+        "lab-2v2-2026-11-06",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--run-id",
+        "refresh-20261109-clone-core",
+        "--out",
+        "reply/star-realms-2v2-clone-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-2v2-clone-core.json",
+        "reply/star-realms-2v2-clone-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:03:11.092Z",
+      "finishedAt": "2026-11-09T02:16:56.879Z",
+      "log": "logs/lab-clone-core.log"
+    },
+    {
+      "key": "lab-clone-all",
+      "label": "2V2 实验室 A · 复制队 · 全扩(3包)",
+      "args": [
+        "src/team-lab-cli.js",
+        "--experiment",
+        "clone",
+        "--sets",
+        "all",
+        "--seed",
+        "lab-2v2-2026-11-06",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--run-id",
+        "refresh-20261109-clone-all",
+        "--out",
+        "reply/star-realms-2v2-clone-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-2v2-clone-all.json",
+        "reply/star-realms-2v2-clone-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:03:11.107Z",
+      "finishedAt": "2026-11-09T02:20:55.144Z",
+      "log": "logs/lab-clone-all.log"
+    },
+    {
+      "key": "lab-random-core",
+      "label": "2V2 实验室 B · 随机组队 · 核心",
+      "args": [
+        "src/team-lab-cli.js",
+        "--experiment",
+        "random",
+        "--sets",
+        "core",
+        "--seed",
+        "lab-2v2-2026-11-06",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--run-id",
+        "refresh-20261109-random-core",
+        "--out",
+        "reply/star-realms-2v2-random-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-2v2-random-core.json",
+        "reply/star-realms-2v2-random-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:03:11.122Z",
+      "finishedAt": "2026-11-09T02:09:58.790Z",
+      "log": "logs/lab-random-core.log"
+    },
+    {
+      "key": "lab-random-all",
+      "label": "2V2 实验室 B · 随机组队 · 全扩(3包)",
+      "args": [
+        "src/team-lab-cli.js",
+        "--experiment",
+        "random",
+        "--sets",
+        "all",
+        "--seed",
+        "lab-2v2-2026-11-06",
+        "--seasons",
+        "12",
+        "--rounds",
+        "5",
+        "--run-id",
+        "refresh-20261109-random-all",
+        "--out",
+        "reply/star-realms-2v2-random-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-2v2-random-all.json",
+        "reply/star-realms-2v2-random-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:09:58.793Z",
+      "finishedAt": "2026-11-09T02:18:56.760Z",
+      "log": "logs/lab-random-all.log"
+    },
+    {
+      "key": "hydra3-core",
+      "label": "3V3 三头龙 · 核心",
+      "args": [
+        "src/mode-tourney-cli.js",
+        "--mode",
+        "hydra3",
+        "--sets",
+        "core",
+        "--seasons",
+        "12",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "refresh-20261109-hydra3-core",
+        "--out",
+        "reply/star-realms-hydra3-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-hydra3-core.json",
+        "reply/star-realms-hydra3-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:10:09.217Z",
+      "finishedAt": "2026-11-09T02:13:32.179Z",
+      "log": "logs/hydra3-core.log"
+    },
+    {
+      "key": "hydra3-all",
+      "label": "3V3 三头龙 · 全扩(6包)",
+      "args": [
+        "src/mode-tourney-cli.js",
+        "--mode",
+        "hydra3",
+        "--sets",
+        "all",
+        "--seasons",
+        "12",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "refresh-20261109-hydra3-all",
+        "--out",
+        "reply/star-realms-hydra3-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-hydra3-all.json",
+        "reply/star-realms-hydra3-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:10:58.595Z",
+      "finishedAt": "2026-11-09T02:16:30.283Z",
+      "log": "logs/hydra3-all.log"
+    },
+    {
+      "key": "emperor-core",
+      "label": "3V3 大将战 · 核心",
+      "args": [
+        "src/mode-tourney-cli.js",
+        "--mode",
+        "emperor",
+        "--sets",
+        "core",
+        "--seasons",
+        "12",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "refresh-20261109-emperor-core",
+        "--out",
+        "reply/star-realms-emperor-core",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-emperor-core.json",
+        "reply/star-realms-emperor-core.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:13:32.181Z",
+      "finishedAt": "2026-11-09T02:17:27.323Z",
+      "log": "logs/emperor-core.log"
+    },
+    {
+      "key": "emperor-all",
+      "label": "3V3 大将战 · 全扩(6包)",
+      "args": [
+        "src/mode-tourney-cli.js",
+        "--mode",
+        "emperor",
+        "--sets",
+        "all",
+        "--seasons",
+        "12",
+        "--seed",
+        "mode-3v3-2026-11-08",
+        "--run-id",
+        "refresh-20261109-emperor-all",
+        "--out",
+        "reply/star-realms-emperor-all",
+        "--quiet",
+        "true"
+      ],
+      "produces": [
+        "reply/star-realms-emperor-all.json",
+        "reply/star-realms-emperor-all.md"
+      ],
+      "status": "completed",
+      "exitCode": 0,
+      "startedAt": "2026-11-09T02:16:30.286Z",
+      "finishedAt": "2026-11-09T02:21:33.998Z",
+      "log": "logs/emperor-all.log"
+    }
+  ],
+  "allSucceeded": true
+}
