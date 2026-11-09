@@ -8,12 +8,22 @@ import { listScripts } from '../ai/loader.js';
 import { MODES, validateMode } from '../engine/modes.js';
 import { EXPANSION_PACKS, normalizeExpansions } from '../engine/cards.js';
 import { buildTeams } from '../engine/team-swiss.js';
+import { createCodeStamp } from './code-stamp.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PUBLIC = path.join(ROOT, 'public');
 const SUBAGENT_CATALOG = path.join(ROOT, 'subagents.json');
 const SUBAGENT_PROGRESS = path.join(ROOT, 'subagent-progress');
 const PORT = Number(process.env.PORT || 4397);
+// 启动后若这些文件被改动，说明内存里跑的是旧代码；界面据此提示重启。
+const staleCode = createCodeStamp({
+  root: ROOT,
+  files: [
+    'src/engine/engine.js', 'src/engine/modes.js', 'src/engine/cards.js',
+    'src/engine/expansions.js', 'src/engine/expansions-extra.js', 'src/engine/runner.js',
+    'src/server/server.js', 'src/server/code-stamp.js', 'public/app.js', 'public/index.html'
+  ]
+});
 const TOURNEY_DIR = path.join(ROOT, 'tournaments');
 const TOURNEY_CLI = path.join(ROOT, 'src', 'tourney-cli.js');
 const TEAM_CLI = path.join(ROOT, 'src', 'team-tourney-cli.js');
@@ -311,7 +321,8 @@ class LiveMatch {
       error: this.error,
       result: this.runner.result(),
       history: this.runner.actions.slice(-250).map(record => ({ index: record.index, playerId: record.playerId, description: record.description, durationMs: record.durationMs, events: record.events })),
-      config: this.runner.config
+      config: this.runner.config,
+      codeStale: staleCode()
     };
   }
 
@@ -408,7 +419,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   try {
     if (url.pathname === '/api/health') return json(res, 200, { ok: true, version: 2 });
-    if (url.pathname === '/api/options') return json(res, 200, { modes: Object.entries(MODES).map(([id, mode]) => ({ id, ...mode })), expansions: EXPANSION_PACKS });
+    if (url.pathname === '/api/options') return json(res, 200, { modes: Object.entries(MODES).map(([id, mode]) => ({ id, ...mode })), expansions: EXPANSION_PACKS, codeStale: staleCode() });
     if (url.pathname === '/api/subagents') return json(res, 200, readSubagents());
     if (url.pathname === '/api/subagents/events') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });

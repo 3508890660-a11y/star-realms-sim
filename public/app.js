@@ -34,12 +34,26 @@ function setOffline(show, message) {
   if (show) $('#offlineMessage').textContent = message || '无法连接 127.0.0.1:4397';
 }
 
+// 服务端启动后源码被改过 → 内存里仍是旧规则，必须重启才生效。
+function setCodeStale(info) {
+  const banner = $('#staleBanner');
+  if (!banner) return;
+  const files = info?.changed?.map(item => item.file) || [];
+  const show = files.length > 0;
+  banner.classList.toggle('hidden', !show);
+  if (show) {
+    const started = info.bootedAt ? new Date(info.bootedAt).toLocaleString() : '未知时间';
+    $('#staleMessage').textContent = `${files.join('、')} 在该服务启动（${started}）之后被修改`;
+  }
+}
+
 async function refresh() {
   const serial = ++refreshSerial;
   try {
     const data = await api(`/api/match?perspective=${perspective}`);
     if (serial !== refreshSerial) return;
     setOffline(false);
+    setCodeStale(data.codeStale);
     snapshot = data;
     render();
   } catch (error) {

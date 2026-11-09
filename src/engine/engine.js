@@ -1003,6 +1003,22 @@ export class Game {
   attack(action) {
     const s = this.state;
     const player = s.players[s.activePlayer];
+    // 二次校验：合法动作列表之外的攻击一律拒绝。
+    // 脚本与界面本应只从 legalActions() 里挑，但过期快照、手写请求或旧版前端
+    // 都可能把非法目标送进来；这里兜底，避免「提督越过对位直击大将」落盘。
+    if (!Number.isInteger(action.amount) || action.amount < 1) throw new Error('攻击伤害必须是正整数');
+    if (action.amount > player.combat) throw new Error('战斗值不足');
+    if (action.targetType === 'base') {
+      const uid = action.targetId;
+      const card = s.cards[uid];
+      if (!card) throw new Error('目标基地不存在');
+      if (!this.canAttackBase(player.id, card.owner, uid)) throw new Error('该基地当前不可攻击');
+    } else {
+      const target = s.players[action.targetId];
+      if (!target) throw new Error('目标玩家不存在');
+      if (!canAttackPlayer(s, player.id, target.id)) throw new Error('该玩家当前不可攻击');
+      if (this.teamHasOutpost(target.id)) throw new Error('目标受前哨保护，需先摧毁前哨');
+    }
     player.combat -= action.amount;
     if (action.targetType === 'base') {
       const uid = action.targetId;

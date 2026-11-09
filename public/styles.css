@@ -4,3 +4,7 @@
 .offline-banner span{flex:1;min-width:220px}
 .offline-banner small{color:#d9b98f;font-size:10px}
 .offline-banner code{font-family:"Cascadia Code",Consolas,monospace;color:#ffd08c;background:#1a1209;padding:1px 5px;border-radius:3px}
+.stale-banner{background:#2a1b3a;border-bottom-color:#7a5a9b;color:#dcc8f0}
+.stale-banner b{color:#d9b6ff}
+.stale-banner small{color:#b79ad0}
+.stale-banner code{color:#d9b6ff;background:#170f21}

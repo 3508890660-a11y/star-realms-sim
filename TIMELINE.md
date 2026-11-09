@@ -290,11 +290,42 @@
 
 **结果**：三头龙核心/全扩均由 **deepseek v4.1flash** 拿下（84.72% / 76.67%，10/12 与 8/12 冠，冠亚 z 6.504 / 4.182）；大将战核心/全扩均由 **GLM5.3** 拿下（75.28% / 69.44%，12/12 与 7/12 冠，z 3.973 / 2.279）。四场冠亚差**全部达到 95% 显著**；前位胜率 54.03%–55.28%。与随机组队 3V3 的 β 第一（四个不同模型）不矛盾：复制队测自协同强度，随机组队测个人边际贡献。
 
-**验收**：四场 4/4 退出码 0，`tools/mode-clone-verify.mjs` 4/4 通过（2,160/2,160 局、零重赛/重试/配对回退、六座配平、大将按副本配平、每届 180 局、冠军数 12）；全量 `npm test` **103/103**（原 95 + 复制队 7 + 规则探针 1）。
+**验收**：四场 4/4 退出码 0，`tools/mode-clone-verify.mjs` 4/4 通过（2,160/2,160 局、零重赛/重试/配对回退、六座配平、大将按副本配平、每届 180 局、冠军数 12）；全量 `npm test` **112/112**（原 95 + 复制队 7 + 规则探针 1 + 阶段 16 的 11 项）。
 
 **产物**：`reply/star-realms-3v3-clone-{hydra3,emperor}-{core,all}.json/.md`；`reply/star-realms-3v3-clone-summary.md`；`reply/mode-clone-20261109/`（manifest / logs / verification）。
 
 **边界**：复制队不是个人能力榜；β 只作辅助。全扩 6 包与 2V2 的 3 包不可比。详见 `README.md` 第 19 节。
+
+---
+
+### 16) 2026-11-09 20:17–21:05 · 实况核对 + 旧进程事故
+
+**触发**：用户先要求「新建一个对局跑跑看」，随后报告「我这边开了一局，发现前期 5 号位攻击了 0 号位的大将」。
+
+**实况核对（新建对局，非回放）**：
+
+- `tools/live-match-trace.mjs`：种子取当前时间，5 局（2v2 / 三头龙 / 大将战三种座位轮换）共 **3,193 次决策**，其中 **1,180 次战斗值 > 0** 可逐次比对「引擎给出的合法目标 vs 独立重算（不调用 `canAttackPlayer`）」，**不符 0 次**。大将战另得：对位存活时把敌方大将判为可打 **0 次**；对位阵亡后规则放行 7–42 次（差额为前哨保护）。
+- `tools/web-live-check.mjs`：通过 `POST /api/match` 新建 2 局，其中一局座位 0 为人类提督，逐回合读 `legalActions` 与独立重算比对，**不符 0 次**；三头龙局的「结束回合」座位序列为 `5 → 0 → 2 → 4 → 1 → 3 → 5`，确认整队连续。
+
+**事故与根因**：用户界面上的 4397 服务是 **2026-11-08 20:41:30** 启动的旧进程（PID 1224），早于 `8aa15a0`（提督对位）与 `167cfe2`（整队轮流）。旧进程的合法动作集合本身就把 0 号大将算进 5 号提督的目标，因此那一手在旧规则下「合法」。
+
+| 证据 | 内容 |
+|---|---|
+| 旧局行动序列 | `0 → 1 → 2 → 3 → 4 → 5`（交替），当前应为 `0 → 2 → 4 → 1 → 3 → 5` |
+| 旧局第 38 步 | `P5 → P0` 打大将；对位 P4 权威 50、仍存活 |
+| 当前引擎重放该局 | 第 6 步即因座位不一致被拒（回合结构亦不同） |
+
+**加固**：
+
+1. `attack()` 增加二次校验（正整数伤害、不超战斗值、基地/玩家各自的目标合法性、前哨保护），绕过 `legalActions()` 也无法落盘。
+2. 新增 `src/server/code-stamp.js`：服务启动时记时间戳，之后对比 10 个源码文件的 mtime；`/api/match` 与 `/api/options` 返回 `codeStale`，界面顶部弹紫色提示条（写明哪个文件、服务何时启动）。
+3. 新增 `test/emperor-targeting.test.js`（三种大将轮换 × 提督对位 × 解锁 × 双层拒绝）、`test/live-mode-audit.test.js`（引擎层 5 局 + Web 层 2 局，种子取当前时间）、`test/stale-code.test.js`（代码戳边界与接口字段）。
+
+**验收**：重启后（PID 28276）以界面同款路径新建大将战，座位 5 在回合 6/12/18/24/30/42 的可攻击目标**均只有 `[4]`**，违规 0 次；`npm test` **112/112**（原 103 + 实况审计 2 + 大将目标 4 + 旧代码检测 3）。
+
+**产物**：`reply/star-realms-live-match-20261109.md`（含两段实况完整输出）、`reply/star-realms-stale-server-incident.md`（事故复盘）、`tools/live-match-trace.mjs`、`tools/web-live-check.mjs`、`tools/live-match-report.mjs`。
+
+**边界**：旧对局回放 `test-artifacts/stale-welcome-01-replay.json` 只作证据，被 `.gitignore` 排除；大将战「1 贸易移牌允许任意队友」的偏差仍未改。详见 `README.md` 第 20 节。
 
 ---
 
@@ -306,6 +337,10 @@
 | 各阶段落盘时刻 | 文件 mtime（`stat -c %y`），见本文件 §二逐条 |
 | 赛果生成时刻 | 各报告 `generatedAt`（UTC，已换算 +08） |
 | 四场账目守恒 | `reply/star-realms-2v2-*.json` 的 `audit.playedGames / rematches / retries / seatBalanced` |
+| 实况对局（新建，非回放） | `reply/star-realms-live-match-20261109.md`；`tools/live-match-trace.mjs`、`tools/web-live-check.mjs`；`test/live-mode-audit.test.js` |
+| 旧进程事故 | `reply/star-realms-stale-server-incident.md`；PID 1224 启动时间 2026-11-08 20:41:30；旧局行动序列 `0→1→2→3→4→5` |
+| 大将目标规则 | `test/emperor-targeting.test.js`；`README.md` 第 20 节 |
+| 旧代码检测 | `src/server/code-stamp.js`；`test/stale-code.test.js`；`/api/options` 的 `codeStale` |
 | 3V3 四场账目守恒 | `reply/star-realms-{hydra3,emperor}-*.json` 的 `audit.playedGames / seatBalanced / emperorBalanced` |
 | 3V3 交叉结论与显著性 | `reply/star-realms-3v3-summary.md` |
 | 提督对位修正 | `src/engine/modes.js` 的 `admiralSeats` / `oppositeSeat`；`test/team-modes.test.js` 的两项对位测试 |
@@ -335,4 +370,5 @@
 - **阶段 12 本身的口径**：12 份 AI 脚本已在无结果泄漏的隔离会话中按新版程序修订；阶段 12 只产生「可加载、可完成对局」的验收证据，不产生胜率数据。同日阶段 13 已用修订后脚本全量重跑 10 场，因此 `reply/` 当前报告对应**修订后脚本**，阶段 1–11 与本文件 §二 1–11 的胜率/β/排名只作为**修订前历史记录**保留；完整旧基线见 `reply/baseline-before-refresh/` 与 git `72f646f`。评价当前表现请用 `reply/` 当前报告与 `reply/star-realms-refresh-20261109-summary.md`。
 - **本次 UI 的边界**：只读展示 `reply/` 已落盘报告；不提供「从界面启动新实验」，复现仍走 `src/team-lab-cli.js` 或 `src/mode-tourney-cli.js` 命令行。
 - **团队模式的剩余偏差**：回合结构与 2V2 起手牌已在阶段 11 修正；大将战的 1 贸易移牌仍允许任意队友（官方限「相邻队友」）。详见 `README.md` 16.7。
+- **「测试通过」≠「你看到的就对」**：所有自动化测试都跑在**当前源码**上，而界面对应的是**某个已启动的进程**。阶段 16 的事故就是两者脱节：源码已修，4397 上仍是 11-08 20:41 的进程。判断标准改为：`/api/match` 返回的 `codeStale` 为 `null` 才代表当前界面可信。
 - **3V3 结论强度**：单场 432 局，四场 β 的 |z| 最大 1.872，均未达 95% 显著；「deepseek v4.1flash 四场第一」是跨场一致性，不是已证明的排序。前位队胜率低于 50% 是引擎起手张数规则所致，已在 README 第 16 节说明。

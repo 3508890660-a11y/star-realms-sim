@@ -12,6 +12,7 @@
 <body>
   <div class="app-shell">
     <div id="offlineBanner" class="offline-banner hidden"><b>本地服务未连接</b><span id="offlineMessage">无法连接 127.0.0.1:4397</span><small>双击项目根目录的 <code>start-server.bat</code> 启动服务；恢复后本页会自动重连</small></div>
+    <div id="staleBanner" class="offline-banner stale-banner hidden"><b>服务端在跑旧代码</b><span id="staleMessage"></span><small>关闭该 node 进程后重新运行 <code>start-server.bat</code>；否则对局仍按改动前的规则判定</small></div>
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark"><span></span><span></span><span></span></div>
